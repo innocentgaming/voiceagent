@@ -1,14 +1,23 @@
 {
   "name": "indicvoice-lab",
   "version": "1.0.0",
-  "description": "IndicVoice Lab - An Indian-language Voice Agent Testing Platform for Gnani AI",
+  "description": "IndicVoice Lab - An Indian-language Voice Agent Testing Platform for Gnani AI Challenge",
+  "main": "server.js",
   "scripts": {
+    "start": "node server.js",
     "server": "cd server && npm start",
-    "server:dev": "cd server && npm run dev",
     "client": "cd client && npm run dev",
     "build": "cd client && npm run build",
     "test": "cd server && npm test",
-    "seed": "cd server && node scripts/seed.js"
+    "seed": "cd server && node scripts/seed.js",
+    "test:gnani": "cd server && node scripts/testGnaniLive.js",
+    "gen:audio": "cd server && node scripts/generateSampleWavs.js"
+  },
+  "dependencies": {
+    "axios": "^1.7.9",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "multer": "^1.4.5-lts.1"
   },
   "keywords": [
     "indic-speech",
@@ -25,4 +34,3 @@
   "author": "IndicVoice Lab Team",
   "license": "MIT"
 }
-
