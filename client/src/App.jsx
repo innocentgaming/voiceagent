@@ -3,6 +3,7 @@ import Navbar from './components/Navbar';
 import Dashboard from './components/Dashboard';
 import ProjectWorkspace from './components/ProjectWorkspace';
 import TestHistory from './components/TestHistory';
+import EnterpriseStudio from './components/EnterpriseStudio';
 import EvaluationModal from './components/EvaluationModal';
 import CreateProjectModal from './components/CreateProjectModal';
 import CreateTestCaseModal from './components/CreateTestCaseModal';
@@ -189,7 +190,6 @@ export default function App() {
       if (data.success) {
         fetchProjectDetails(activeProjectId);
         fetchDashboardData();
-        // Automatically pop up evaluation report
         setInspectedRun(data.data.run);
       }
     } catch (err) {
@@ -289,6 +289,10 @@ export default function App() {
             runs={historyRuns.length > 0 ? historyRuns : (stats?.recentRuns || [])}
             onViewRunDetails={handleViewRunDetails}
           />
+        )}
+
+        {activeTab === 'enterprise' && (
+          <EnterpriseStudio />
         )}
       </main>
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layers, Activity, History, Plus, Database, Sparkles } from 'lucide-react';
+import { Layers, Activity, History, Plus, Database, Sparkles, ShieldCheck } from 'lucide-react';
 
 export default function Navbar({ activeTab, setActiveTab, onOpenCreateProject, onSeedDemoData, isSeeding }) {
   return (
@@ -15,7 +15,7 @@ export default function Navbar({ activeTab, setActiveTab, onOpenCreateProject, o
             <div className="flex items-center gap-2">
               <span className="font-bold text-lg text-slate-100 tracking-tight">IndicVoice Lab</span>
               <span className="text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                Gnani Prisma
+                Enterprise AI
               </span>
             </div>
             <p className="text-xs text-slate-400">Indian-language Voice Agent Testing Platform</p>
@@ -57,7 +57,19 @@ export default function Navbar({ activeTab, setActiveTab, onOpenCreateProject, o
             }`}
           >
             <History className="w-4 h-4 text-amber-400" />
-            Runs & History
+            Runs
+          </button>
+
+          <button
+            onClick={() => setActiveTab('enterprise')}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-md transition font-medium ${
+              activeTab === 'enterprise'
+                ? 'bg-indigo-600 text-white shadow-sm'
+                : 'text-purple-300 hover:text-purple-200'
+            }`}
+          >
+            <ShieldCheck className="w-4 h-4 text-purple-300" />
+            Enterprise Suite
           </button>
         </nav>
 

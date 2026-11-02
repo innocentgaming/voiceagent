@@ -143,3 +143,4 @@ GNANI_PRISMA_ENDPOINT=https://prisma.gnani.ai/api/v1/stt
 
 - **Target MVP Deadline**: November 10, 2026
 - **Primary Deliverable**: Working end-to-end evaluation platform integrating Gnani Prisma STT, WER/CER calculation, critical entity mismatch detection, and dark-theme developer UI.
+

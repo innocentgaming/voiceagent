@@ -8,6 +8,16 @@ const { evaluateTranscription } = require('../services/evalEngine');
 const { evaluateCriticalEntities } = require('../services/entityEngine');
 const { transcribeAudio } = require('../services/prismaService');
 
+// Enterprise AI Modules
+const { evaluateGuardrails } = require('../services/guardrailsService');
+const { vectorDb } = require('../services/ragVectorService');
+const { semanticCache, routeModel } = require('../services/semanticCacheService');
+const { personaEngine } = require('../services/personaEngine');
+const { integrationsService } = require('../services/integrationsService');
+const { authService, ROLES } = require('../services/authService');
+const { observability } = require('../services/observabilityService');
+const { MCP_TOOLS, handleMcpToolCall } = require('../services/mcpServer');
+
 // Multer storage for uploaded audio
 const UPLOAD_DIR = path.join(__dirname, '../../uploads');
 if (!fs.existsSync(UPLOAD_DIR)) {
@@ -41,7 +51,21 @@ const upload = multer({
 router.get('/dashboard', async (req, res) => {
   try {
     const stats = await storage.getDashboardStats();
-    res.json({ success: true, data: stats });
+    const cacheStats = semanticCache.getStats();
+    const obsStats = observability.getSummary();
+    const activePersona = personaEngine.getActivePersona();
+    const currentUser = authService.getCurrentUser();
+
+    res.json({
+      success: true,
+      data: {
+        ...stats,
+        cacheStats,
+        observability: obsStats,
+        activePersona,
+        currentUser
+      }
+    });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -143,8 +167,9 @@ router.delete('/tests/:id', async (req, res) => {
   }
 });
 
-// --- Evaluation Execution (POST /api/tests/:id/run) ---
+// --- Enterprise Evaluation Execution (POST /api/tests/:id/run) ---
 router.post('/tests/:id/run', async (req, res) => {
+  const startTime = Date.now();
   try {
     const testCase = await storage.getTestCase(req.params.id);
     if (!testCase) {
@@ -152,47 +177,110 @@ router.post('/tests/:id/run', async (req, res) => {
     }
 
     const audioPath = path.join(UPLOAD_DIR, testCase.audioFile);
-    // If uploaded file doesn't exist, create dummy file or use mock
     if (!fs.existsSync(audioPath)) {
       fs.writeFileSync(audioPath, 'MOCK_AUDIO_DATA');
     }
 
-    // 1. Call Gnani Prisma STT
-    const prismaResult = await transcribeAudio(audioPath, testCase.language, {
-      simulatedTranscript: req.body.overrideTranscript
+    // 1. Model Routing
+    const routing = routeModel({
+      language: testCase.language,
+      noiseLevel: testCase.noiseLevel
     });
 
-    const predicted = prismaResult.transcript;
-    const expected = testCase.expectedTranscription;
+    // 2. Semantic Cache Check
+    const cacheKey = `${testCase.language}:${testCase.expectedTranscription}:${testCase.noiseLevel}`;
+    const cachedEntry = semanticCache.get(cacheKey);
 
-    // 2. Transcription Evaluation (WER, CER, alignment)
-    const evalResult = evaluateTranscription(expected, predicted);
+    let predicted = '';
+    let confidence = 0.94;
+    let provider = routing.selectedModel;
+    let isCached = false;
 
-    // 3. Critical Entity Evaluation
+    if (cachedEntry) {
+      predicted = cachedEntry.result.transcript;
+      confidence = cachedEntry.result.confidence;
+      isCached = true;
+    } else {
+      // Call Gnani Prisma STT
+      const prismaResult = await transcribeAudio(audioPath, testCase.language, {
+        simulatedTranscript: req.body.overrideTranscript
+      });
+      predicted = prismaResult.transcript;
+      confidence = prismaResult.confidence;
+      provider = prismaResult.provider;
+
+      // Populate semantic cache
+      semanticCache.set(cacheKey, { transcript: predicted, confidence });
+    }
+
+    // 3. AI Guardrails Evaluation (PII Sanitization & Prompt Injection defense)
+    const guardrails = evaluateGuardrails(predicted, testCase.expectedTranscription);
+
+    // 4. RAG Domain Context Retrieval
+    const ragContext = vectorDb.getEvaluationContext(testCase.expectedTranscription, testCase.language);
+
+    // 5. Transcription Evaluation (WER, CER, alignment)
+    const evalResult = evaluateTranscription(testCase.expectedTranscription, predicted);
+
+    // 6. Critical Entity Evaluation
     const entityResult = evaluateCriticalEntities(testCase.criticalEntities, predicted);
 
-    // 4. Record Test Run
+    // 7. Active Testing Persona
+    const activePersona = personaEngine.getActivePersona();
+
+    const latencyMs = Date.now() - startTime;
+
+    // 8. Record Test Run
     const runRecord = await storage.createTestRun({
       projectId: testCase.projectId,
       testCaseId: testCase._id,
       status: 'COMPLETED',
-      expectedTranscription: expected,
+      expectedTranscription: testCase.expectedTranscription,
       predictedTranscription: predicted,
-      confidence: prismaResult.confidence,
+      confidence,
       wer: evalResult.wer,
       cer: evalResult.cer,
       accuracy: evalResult.accuracy,
       details: evalResult.details,
       alignment: evalResult.alignment,
       entityEvaluation: entityResult,
-      provider: prismaResult.provider
+      provider: `${provider} (${routing.routingReason})`,
+      // Enterprise metadata
+      guardrails,
+      routing,
+      ragContext,
+      persona: activePersona.name,
+      latencyMs,
+      isCached
+    });
+
+    // 9. Automated Bug Filing (Jira & Slack) on Critical Failure
+    let jiraIssue = null;
+    let slackAlert = null;
+    if (entityResult.hasCriticalMismatch) {
+      jiraIssue = await integrationsService.fileJiraBug(runRecord, testCase);
+      slackAlert = await integrationsService.sendSlackAlert(runRecord, testCase);
+    }
+
+    // 10. AI Observability telemetry logging
+    observability.recordEvaluation({
+      testId: testCase._id,
+      language: testCase.language,
+      latencyMs,
+      cached: isCached,
+      wer: evalResult.wer,
+      hasCriticalMismatch: entityResult.hasCriticalMismatch
     });
 
     res.json({
       success: true,
       data: {
         run: runRecord,
-        warning: prismaResult.warning
+        jiraIssue,
+        slackAlert,
+        guardrails,
+        routing,
+        isCached
       }
     });
   } catch (err) {
@@ -228,17 +316,127 @@ router.get('/projects/:id/history', async (req, res) => {
   }
 });
 
+// --- Enterprise AI API Routes ---
+
+// 1. Personas
+router.get('/enterprise/personas', (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      personas: personaEngine.listPersonas(),
+      activePersona: personaEngine.getActivePersona()
+    }
+  });
+});
+
+router.post('/enterprise/personas/active', (req, res) => {
+  const updated = personaEngine.setActivePersona(req.body.id);
+  if (!updated) return res.status(404).json({ success: false, error: 'Persona not found' });
+  res.json({ success: true, data: updated });
+});
+
+// 2. RAG & Vector Knowledge Base
+router.get('/enterprise/rag/documents', (req, res) => {
+  res.json({ success: true, data: vectorDb.listDocuments() });
+});
+
+router.post('/enterprise/rag/search', (req, res) => {
+  const { query, topK } = req.body;
+  const results = vectorDb.search(query, topK || 3);
+  res.json({ success: true, data: results });
+});
+
+// 3. Semantic Caching & Routing
+router.get('/enterprise/cache/stats', (req, res) => {
+  res.json({ success: true, data: semanticCache.getStats() });
+});
+
+router.post('/enterprise/cache/clear', (req, res) => {
+  semanticCache.clear();
+  res.json({ success: true, message: 'Semantic cache cleared' });
+});
+
+// 4. Integrations (Jira, Slack, HRMS)
+router.get('/enterprise/integrations', (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      jiraIssues: integrationsService.listJiraIssues(),
+      slackAlerts: integrationsService.listSlackAlerts(),
+      hrmsDirectory: integrationsService.getHRMSEmployees()
+    }
+  });
+});
+
+// 5. AI Observability
+router.get('/enterprise/observability', (req, res) => {
+  res.json({ success: true, data: observability.getSummary() });
+});
+
+// 6. RBAC & User Context
+router.get('/enterprise/auth/user', (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      user: authService.getCurrentUser(),
+      availableRoles: Object.values(ROLES)
+    }
+  });
+});
+
+router.post('/enterprise/auth/role', (req, res) => {
+  try {
+    const updated = authService.setRole(req.body.role);
+    res.json({ success: true, data: updated });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+// 7. MCP JSON-RPC Server Endpoint
+router.post('/mcp', async (req, res) => {
+  const { method, params, id } = req.body;
+  try {
+    if (method === 'tools/list') {
+      return res.json({
+        jsonrpc: '2.0',
+        id,
+        result: { tools: MCP_TOOLS }
+      });
+    }
+
+    if (method === 'tools/call') {
+      const toolResult = await handleMcpToolCall(params.name, params.arguments);
+      return res.json({
+        jsonrpc: '2.0',
+        id,
+        result: toolResult
+      });
+    }
+
+    res.status(400).json({
+      jsonrpc: '2.0',
+      id,
+      error: { code: -32601, message: 'Method not found' }
+    });
+  } catch (err) {
+    res.status(500).json({
+      jsonrpc: '2.0',
+      id,
+      error: { code: -32603, message: err.message }
+    });
+  }
+});
+
 // --- Seed Default Indian Voice Benchmark Tests ---
 router.post('/seed', async (req, res) => {
   try {
-    // Create demo project
     const demoProject = await storage.createProject({
       name: 'Indian Voice Agent Benchmark 2026',
-      description: 'Evaluation suite for Indian-language voice applications (Hindi, Marathi, Hinglish, UPI & Banking)',
-      category: 'voice-agent'
+      description: 'Enterprise evaluation suite for Indian-language voice applications with AI Guardrails & Jira/Slack integration',
+      category: 'banking-upi'
     });
 
-    // Seed Test 1: PRD UPI Recipient Name Mismatch
     const t1 = await storage.createTestCase(demoProject._id, {
       name: 'UPI Transfer - Recipient Name Validation (Rahul vs Rohan)',
       language: 'hinglish',
@@ -253,7 +451,6 @@ router.post('/seed', async (req, res) => {
       ]
     });
 
-    // Seed Test 2: Hindi Amount Recognition (500 vs 5000)
     const t2 = await storage.createTestCase(demoProject._id, {
       name: 'Hindi Voice Banking - Amount Verification',
       language: 'hindi',
@@ -268,7 +465,6 @@ router.post('/seed', async (req, res) => {
       ]
     });
 
-    // Seed Test 3: Marathi Regional Dialect & Intent
     const t3 = await storage.createTestCase(demoProject._id, {
       name: 'Marathi Customer Service - Order Inquiry',
       language: 'marathi',
@@ -283,67 +479,29 @@ router.post('/seed', async (req, res) => {
       ]
     });
 
-    // Run sample evaluation on Test 1 to immediately populate dashboard with real stats
-    await storage.createTestRun({
-      projectId: demoProject._id,
-      testCaseId: t1._id,
-      status: 'COMPLETED',
+    // Populate initial Jira issue and Slack alert
+    await integrationsService.fileJiraBug({
       expectedTranscription: 'I want to send five hundred rupees to Rahul.',
       predictedTranscription: 'I want to send five hundred rupees to Rohan.',
-      confidence: 0.94,
       wer: 11.11,
       cer: 8.57,
-      accuracy: 88.89,
-      details: {
-        substitutions: 1,
-        deletions: 0,
-        insertions: 0,
-        matches: 8,
-        wordCount: 9,
-        charCount: 35
-      },
-      alignment: [
-        { type: 'match', ref: 'i', hyp: 'i' },
-        { type: 'match', ref: 'want', hyp: 'want' },
-        { type: 'match', ref: 'to', hyp: 'to' },
-        { type: 'match', ref: 'send', hyp: 'send' },
-        { type: 'match', ref: 'five', hyp: 'five' },
-        { type: 'match', ref: 'hundred', hyp: 'hundred' },
-        { type: 'match', ref: 'rupees', hyp: 'rupees' },
-        { type: 'match', ref: 'to', hyp: 'to' },
-        { type: 'substitution', ref: 'rahul', hyp: 'rohan' }
-      ],
       entityEvaluation: {
-        totalEntities: 2,
-        matchedEntities: 1,
-        mismatchedEntities: 1,
-        entityAccuracy: 50,
-        hasCriticalMismatch: true,
         evaluatedEntities: [
-          {
-            name: 'Recipient Name',
-            expectedValue: 'Rahul',
-            type: 'person',
-            matched: false,
-            status: 'FAIL',
-            severity: 'CRITICAL'
-          },
-          {
-            name: 'Transfer Amount',
-            expectedValue: 'five hundred',
-            type: 'amount',
-            matched: true,
-            status: 'PASS',
-            severity: 'CRITICAL'
-          }
+          { name: 'Recipient Name', type: 'person', expectedValue: 'Rahul', matched: false }
         ]
-      },
-      provider: 'Gnani Prisma STT'
-    });
+      }
+    }, t1);
+
+    await integrationsService.sendSlackAlert({
+      expectedTranscription: 'I want to send five hundred rupees to Rahul.',
+      predictedTranscription: 'I want to send five hundred rupees to Rohan.',
+      wer: 11.11,
+      cer: 8.57
+    }, t1);
 
     res.json({
       success: true,
-      message: 'Demo benchmark data seeded successfully!',
+      message: 'Demo benchmark and enterprise integrations seeded successfully!',
       project: demoProject
     });
   } catch (err) {

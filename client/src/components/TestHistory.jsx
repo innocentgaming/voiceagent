@@ -106,3 +106,4 @@ export default function TestHistory({ runs, onViewRunDetails }) {
     </div>
   );
 }
+

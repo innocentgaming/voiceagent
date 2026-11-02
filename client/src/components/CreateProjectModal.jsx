@@ -100,3 +100,4 @@ export default function CreateProjectModal({ onClose, onSubmit, isSubmitting }) 
     </div>
   );
 }
+
