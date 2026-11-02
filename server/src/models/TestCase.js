@@ -27,3 +27,4 @@ const testCaseSchema = new mongoose.Schema({
 testCaseSchema.index({ projectId: 1, category: 1 });
 
 module.exports = mongoose.models.TestCase || mongoose.model('TestCase', testCaseSchema);
+

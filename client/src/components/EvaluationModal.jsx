@@ -9,7 +9,9 @@ import {
   Activity, 
   Cpu, 
   Clock, 
-  Volume2 
+  Volume2,
+  Download,
+  FileText
 } from 'lucide-react';
 
 export default function EvaluationModal({ run, onClose }) {
@@ -34,6 +36,45 @@ export default function EvaluationModal({ run, onClose }) {
   } = run;
 
   const hasCriticalMismatch = entityEvaluation?.hasCriticalMismatch || run.metrics?.criticalFailureDetected;
+
+  const handleExportJSON = () => {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(run, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", `indicvoice_audit_${run._id || Date.now()}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+  };
+
+  const handleExportMarkdown = () => {
+    const md = `
+# IndicVoice Lab - Speech AI Evaluation Report
+**Timestamp:** ${new Date(createdAt).toLocaleString()}  
+**Provider:** ${provider || 'Gnani Prisma STT'}  
+**Word Error Rate (WER):** ${wer}%  
+**Character Error Rate (CER):** ${cer}%  
+**Overall Accuracy:** ${accuracy}%  
+**Critical Entity Status:** ${hasCriticalMismatch ? 'CRITICAL FAILURE' : 'PASSED'}  
+
+---
+### Transcripts
+- **Expected (Reference):** ${expectedTranscription}
+- **Prisma (Hypothesis):** ${predictedTranscription}
+
+---
+### Critical Entities
+${(entityEvaluation?.evaluatedEntities || []).map(e => `- ${e.name} (${e.type}): Expected "${e.expectedValue}" -> ${e.matched ? 'PASSED' : 'FAILED'}`).join('\n')}
+    `.trim();
+
+    const dataStr = "data:text/markdown;charset=utf-8," + encodeURIComponent(md);
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", `indicvoice_audit_${run._id || Date.now()}.md`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+  };
 
   return (
     <div 
@@ -66,13 +107,46 @@ export default function EvaluationModal({ run, onClose }) {
             </h2>
           </div>
 
-          <button
-            onClick={onClose}
-            aria-label="Close evaluation report"
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition focus-visible:ring-2 focus-visible:ring-indigo-400"
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleExportJSON}
+              title="Export report as JSON"
+              className="p-1.5 rounded-lg border border-slate-700 bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 text-xs flex items-center gap-1 transition"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>JSON</span>
+            </button>
+            <button
+              onClick={handleExportMarkdown}
+              title="Export report as Markdown"
+              className="p-1.5 rounded-lg border border-slate-700 bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 text-xs flex items-center gap-1 transition"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>MD</span>
+            </button>
+            <button
+              onClick={onClose}
+              aria-label="Close evaluation report"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition focus-visible:ring-2 focus-visible:ring-indigo-400"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Audio Player Bar */}
+        <div className="p-3.5 rounded-xl bg-slate-950/90 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-xs font-semibold text-slate-300">
+            <Volume2 className="w-4 h-4 text-indigo-400" />
+            <span>Audio Recording Playback</span>
+          </div>
+          <audio 
+            controls 
+            className="w-full sm:w-72 h-8 rounded"
+            src="/uploads/hindi_upi_500.wav" 
           >
-            <X className="w-5 h-5" />
-          </button>
+            Your browser does not support audio playback.
+          </audio>
         </div>
 
         {/* PILLAR 1 & 6: High-Visibility Critical Entity Alert Banner */}
@@ -287,7 +361,10 @@ export default function EvaluationModal({ run, onClose }) {
         )}
 
         {/* Footer */}
-        <div className="flex justify-end pt-4 border-t border-slate-800">
+        <div className="flex items-center justify-between pt-4 border-t border-slate-800">
+          <div className="text-[11px] text-slate-500">
+            Engine: Gnani Prisma STT • Normalization: Unicode NFC
+          </div>
           <button
             onClick={onClose}
             className="px-5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold transition"

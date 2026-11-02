@@ -8,8 +8,19 @@ import {
   ArrowRight, 
   Layers, 
   ShieldAlert,
-  Play
+  Play,
+  BarChart3
 } from 'lucide-react';
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  Tooltip, 
+  ResponsiveContainer, 
+  CartesianGrid,
+  Legend 
+} from 'recharts';
 
 export default function Dashboard({ 
   stats, 
@@ -23,6 +34,22 @@ export default function Dashboard({
   const criticalErrors = stats?.criticalErrors || 0;
   const totalRuns = stats?.totalRuns || 0;
   const criticalFailureRate = totalRuns > 0 ? Math.round((criticalErrors / totalRuns) * 100) : 0;
+
+  // Chart data preparing recent runs
+  const chartData = (stats?.recentRuns || []).slice(0, 6).map((r, i) => ({
+    name: `Run #${i + 1}`,
+    WER: r.wer || 0,
+    CER: r.cer || 0,
+    Accuracy: r.accuracy || Math.max(0, 100 - (r.wer || 0))
+  })).reverse();
+
+  // If no runs, dummy baseline preview
+  const displayChartData = chartData.length > 0 ? chartData : [
+    { name: 'UPI Recipient', WER: 11.1, CER: 8.5, Accuracy: 88.9 },
+    { name: 'Hindi Amount', WER: 12.5, CER: 6.2, Accuracy: 87.5 },
+    { name: 'Marathi Order', WER: 14.2, CER: 9.1, Accuracy: 85.8 },
+    { name: 'Hinglish Cancel', WER: 8.3, CER: 4.1, Accuracy: 91.7 }
+  ];
 
   return (
     <div className="space-y-8">
@@ -113,6 +140,34 @@ export default function Dashboard({
           </div>
         </div>
 
+      </div>
+
+      {/* Visual Analytics Chart (Recharts) */}
+      <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <BarChart3 className="w-4 h-4 text-indigo-400" />
+            <h2 className="text-sm font-semibold text-white">WER vs CER Error Rate Comparison</h2>
+          </div>
+          <span className="text-xs text-slate-400 font-mono">Dynamic Benchmark Analytics</span>
+        </div>
+
+        <div className="h-64 w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={displayChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+              <XAxis dataKey="name" stroke="#64748b" fontSize={11} />
+              <YAxis stroke="#64748b" fontSize={11} unit="%" />
+              <Tooltip 
+                contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', fontSize: '11px' }}
+                itemStyle={{ color: '#e2e8f0' }}
+              />
+              <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} />
+              <Bar dataKey="WER" fill="#6366f1" radius={[4, 4, 0, 0]} name="Word Error Rate (WER %)" />
+              <Bar dataKey="CER" fill="#a855f7" radius={[4, 4, 0, 0]} name="Character Error Rate (CER %)" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </div>
 
       {/* Projects List & Recent Evaluations */}
@@ -258,4 +313,3 @@ export default function Dashboard({
     </div>
   );
 }
-

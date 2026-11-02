@@ -35,3 +35,4 @@ testRunSchema.index({ testCaseId: 1, createdAt: -1 });
 testRunSchema.index({ projectId: 1, status: 1, createdAt: -1 });
 
 module.exports = mongoose.models.TestRun || mongoose.model('TestRun', testRunSchema);
+
