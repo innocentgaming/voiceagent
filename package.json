@@ -1,0 +1,27 @@
+{
+  "name": "indicvoice-lab",
+  "version": "1.0.0",
+  "description": "IndicVoice Lab - An Indian-language Voice Agent Testing Platform for Gnani AI",
+  "scripts": {
+    "server": "cd server && npm start",
+    "server:dev": "cd server && npm run dev",
+    "client": "cd client && npm run dev",
+    "build": "cd client && npm run build",
+    "test": "cd server && npm test",
+    "seed": "cd server && node scripts/seed.js"
+  },
+  "keywords": [
+    "indic-speech",
+    "voice-agent",
+    "stt-evaluation",
+    "gnani-prisma",
+    "wer",
+    "cer",
+    "critical-entities",
+    "hindi",
+    "marathi",
+    "hinglish"
+  ],
+  "author": "IndicVoice Lab Team",
+  "license": "MIT"
+}

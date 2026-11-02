@@ -1,0 +1,198 @@
+{
+  "projects": [
+    {
+      "_id": "f3264020-1536-4caa-bec0-5802ca774631",
+      "name": "Indian Voice Agent Benchmark 2026",
+      "description": "Evaluation suite for Indian-language voice applications (Hindi, Marathi, Hinglish, UPI & Banking)",
+      "category": "voice-agent",
+      "createdAt": "2026-11-02T08:22:57.184Z",
+      "updatedAt": "2026-11-02T08:22:57.187Z"
+    }
+  ],
+  "testCases": [
+    {
+      "_id": "76926849-993a-48c5-a267-911446b42bdf",
+      "projectId": "f3264020-1536-4caa-bec0-5802ca774631",
+      "name": "UPI Transfer - Recipient Name Validation (Rahul vs Rohan)",
+      "language": "hinglish",
+      "category": "names/addresses",
+      "noiseLevel": "clean",
+      "audioFile": "sample-rahul.wav",
+      "audioOriginalName": "upi_transfer_rahul.wav",
+      "expectedTranscription": "I want to send five hundred rupees to Rahul.",
+      "criticalEntities": [
+        {
+          "name": "Recipient Name",
+          "type": "person",
+          "value": "Rahul",
+          "severity": "CRITICAL"
+        },
+        {
+          "name": "Transfer Amount",
+          "type": "amount",
+          "value": "five hundred",
+          "severity": "CRITICAL"
+        }
+      ],
+      "createdAt": "2026-11-02T08:22:57.191Z",
+      "lastRunResult": {
+        "runId": "8966bd96-5ccf-42df-9bbb-31cfba9971a2",
+        "wer": 11.11,
+        "cer": 8.57,
+        "accuracy": 88.89,
+        "hasCriticalMismatch": true,
+        "evaluatedAt": "2026-11-02T08:22:57.204Z"
+      }
+    },
+    {
+      "_id": "9fada330-ace6-4b9c-a708-28ee7b39424d",
+      "projectId": "f3264020-1536-4caa-bec0-5802ca774631",
+      "name": "Hindi Voice Banking - Amount Verification",
+      "language": "hindi",
+      "category": "numbers/amounts",
+      "noiseLevel": "background noise",
+      "audioFile": "sample-hindi-amount.wav",
+      "audioOriginalName": "hindi_banking_amount.wav",
+      "expectedTranscription": "मुझे पाँच सौ रुपये राहुल को भेजने हैं।",
+      "criticalEntities": [
+        {
+          "name": "राशि (Amount)",
+          "type": "amount",
+          "value": "पाँच सौ",
+          "severity": "CRITICAL"
+        },
+        {
+          "name": "प्राप्तकर्ता (Recipient)",
+          "type": "person",
+          "value": "राहुल",
+          "severity": "CRITICAL"
+        }
+      ],
+      "createdAt": "2026-11-02T08:22:57.196Z",
+      "lastRunResult": null
+    },
+    {
+      "_id": "805203d5-9b5b-4270-aa3b-446b16bcb702",
+      "projectId": "f3264020-1536-4caa-bec0-5802ca774631",
+      "name": "Marathi Customer Service - Order Inquiry",
+      "language": "marathi",
+      "category": "regional pronunciation",
+      "noiseLevel": "clean",
+      "audioFile": "sample-marathi.wav",
+      "audioOriginalName": "marathi_order_inquiry.wav",
+      "expectedTranscription": "मला पाचशे रुपये राहुलला पाठवायचे आहेत.",
+      "criticalEntities": [
+        {
+          "name": "रक्कम (Amount)",
+          "type": "amount",
+          "value": "पाचशे",
+          "severity": "CRITICAL"
+        },
+        {
+          "name": "नाव (Name)",
+          "type": "person",
+          "value": "राहुल",
+          "severity": "CRITICAL"
+        }
+      ],
+      "createdAt": "2026-11-02T08:22:57.199Z",
+      "lastRunResult": null
+    }
+  ],
+  "testRuns": [
+    {
+      "_id": "8966bd96-5ccf-42df-9bbb-31cfba9971a2",
+      "projectId": "f3264020-1536-4caa-bec0-5802ca774631",
+      "testCaseId": "76926849-993a-48c5-a267-911446b42bdf",
+      "status": "COMPLETED",
+      "expectedTranscription": "I want to send five hundred rupees to Rahul.",
+      "predictedTranscription": "I want to send five hundred rupees to Rohan.",
+      "confidence": 0.94,
+      "wer": 11.11,
+      "cer": 8.57,
+      "accuracy": 88.89,
+      "details": {
+        "substitutions": 1,
+        "deletions": 0,
+        "insertions": 0,
+        "matches": 8,
+        "wordCount": 9,
+        "charCount": 35
+      },
+      "alignment": [
+        {
+          "type": "match",
+          "ref": "i",
+          "hyp": "i"
+        },
+        {
+          "type": "match",
+          "ref": "want",
+          "hyp": "want"
+        },
+        {
+          "type": "match",
+          "ref": "to",
+          "hyp": "to"
+        },
+        {
+          "type": "match",
+          "ref": "send",
+          "hyp": "send"
+        },
+        {
+          "type": "match",
+          "ref": "five",
+          "hyp": "five"
+        },
+        {
+          "type": "match",
+          "ref": "hundred",
+          "hyp": "hundred"
+        },
+        {
+          "type": "match",
+          "ref": "rupees",
+          "hyp": "rupees"
+        },
+        {
+          "type": "match",
+          "ref": "to",
+          "hyp": "to"
+        },
+        {
+          "type": "substitution",
+          "ref": "rahul",
+          "hyp": "rohan"
+        }
+      ],
+      "entityEvaluation": {
+        "totalEntities": 2,
+        "matchedEntities": 1,
+        "mismatchedEntities": 1,
+        "entityAccuracy": 50,
+        "hasCriticalMismatch": true,
+        "evaluatedEntities": [
+          {
+            "name": "Recipient Name",
+            "expectedValue": "Rahul",
+            "type": "person",
+            "matched": false,
+            "status": "FAIL",
+            "severity": "CRITICAL"
+          },
+          {
+            "name": "Transfer Amount",
+            "expectedValue": "five hundred",
+            "type": "amount",
+            "matched": true,
+            "status": "PASS",
+            "severity": "CRITICAL"
+          }
+        ]
+      },
+      "provider": "Gnani Prisma STT",
+      "createdAt": "2026-11-02T08:22:57.204Z"
+    }
+  ]
+}
