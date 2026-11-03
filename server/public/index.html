@@ -37,15 +37,19 @@
   </script>
 
   <style>
-    /* Base typography */
+    /* Base typography & rendering */
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
       transition: background-color 0.2s ease, color 0.2s ease;
     }
     
     .font-devanagari {
       font-family: 'Noto Sans Devanagari', 'Plus Jakarta Sans', sans-serif;
-      line-height: 1.8;
+      line-height: 1.85;
+      letter-spacing: 0.01em;
     }
 
     .font-mono {
@@ -62,7 +66,12 @@
     html.light .theme-card {
       background-color: #ffffff;
       border-color: #e2e8f0;
-      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.03);
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+
+    html.light .theme-card:hover {
+      box-shadow: 0 8px 24px -4px rgba(99, 102, 241, 0.12);
     }
 
     html.light .theme-subtle {
@@ -121,8 +130,17 @@
     }
 
     html.dark .theme-card {
-      background-color: rgba(15, 23, 42, 0.9);
+      background-color: rgba(15, 23, 42, 0.85);
       border-color: #1e293b;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+
+    html.dark .theme-card:hover {
+      border-color: rgba(99, 102, 241, 0.5);
+      box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.15), inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
     }
 
     html.dark .theme-subtle {
@@ -166,7 +184,7 @@
     }
 
     html.dark .theme-table-row:hover {
-      background-color: rgba(30, 41, 59, 0.4);
+      background-color: rgba(30, 41, 59, 0.6);
     }
 
     html.dark .theme-banner {
@@ -177,9 +195,23 @@
     /* Pulse animation for engine status dot */
     @keyframes pulse-dot {
       0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.4; transform: scale(0.85); }
+      50% { opacity: 0.35; transform: scale(0.85); }
     }
     .status-dot { animation: pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+
+    /* Custom Thin Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    html.light ::-webkit-scrollbar-thumb { background: #cbd5e1; }
+    html.light ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+    /* Interactive Focus Rings */
+    button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.45);
+    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white">

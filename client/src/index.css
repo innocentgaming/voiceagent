@@ -9,6 +9,11 @@
 @layer base {
   :root {
     color-scheme: dark;
+    --primary-indigo: #6366f1;
+    --primary-purple: #a855f7;
+    --primary-emerald: #10b981;
+    --primary-rose: #f43f5e;
+    --primary-amber: #f59e0b;
   }
   
   html.light {
@@ -18,12 +23,19 @@
   body {
     font-family: var(--font-sans);
     min-height: 100vh;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
-/* Typography Helpers */
+/* ====================================================
+   1. TYPOGRAPHY & INDIC-FIRST LINGUISTIC RENDERING
+   ==================================================== */
 .font-devanagari {
   font-family: var(--font-devanagari);
+  line-height: 1.85;
+  letter-spacing: 0.01em;
 }
 
 .font-mono {
@@ -31,7 +43,9 @@
   font-feature-settings: 'tnum' on, 'zero' on;
 }
 
-/* Light / Day Mode Theme Overrides */
+/* ====================================================
+   2. DAY (LIGHT) MODE ENTERPRISE PALETTE & DEPTH
+   ==================================================== */
 html.light body {
   background-color: #f8fafc;
   color: #0f172a;
@@ -47,9 +61,17 @@ html.light .bg-slate-900 {
 
 html.light .bg-slate-900\/90,
 html.light .bg-slate-900\/80,
+html.light .bg-slate-900\/70,
 html.light .bg-slate-900\/60,
 html.light .bg-slate-900\/40 {
   background-color: #ffffff !important;
+}
+
+html.light .bg-slate-950\/80,
+html.light .bg-slate-950\/70,
+html.light .bg-slate-950\/50,
+html.light .bg-slate-950\/60 {
+  background-color: #f8fafc !important;
 }
 
 html.light .border-slate-800,
@@ -87,16 +109,156 @@ html.light .hover\:bg-slate-900:hover {
   background-color: #f8fafc !important;
 }
 
-/* Dark Mode Theme */
+/* Cards elevation in light mode */
+html.light .rounded-xl,
+html.light .rounded-2xl {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.03);
+}
+
+/* ====================================================
+   3. NIGHT (DARK) MODE OBSIDIAN HUD STYLING
+   ==================================================== */
 html.dark body {
   background-color: #070a12;
   color: #f8fafc;
 }
 
-/* Custom Scrollbars */
+/* Glassmorphism surfaces with ambient inset borders */
+html.dark .bg-slate-900\/90,
+html.dark .bg-slate-900\/80,
+html.dark .bg-slate-900\/70 {
+  background-color: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+}
+
+/* ====================================================
+   4. INTERACTIVE MICRO-ANIMATIONS & HOVER STATES
+   ==================================================== */
+.card-hover {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px -4px rgba(99, 102, 241, 0.15);
+}
+
+/* Ambient Pulsing Engine Status Indicator */
+@keyframes pulse-ring {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.15); opacity: 0.4; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+.engine-pulse {
+  animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Shimmer Loading Effect for Async Evaluations */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.shimmer-active {
+  background: linear-gradient(90deg, rgba(255,255,255,0.02) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.02) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Audio Waveform Animation Simulation */
+@keyframes wave-bar {
+  0%, 100% { height: 4px; }
+  50% { height: 16px; }
+}
+
+.wave-bar-1 { animation: wave-bar 0.9s ease-in-out infinite; }
+.wave-bar-2 { animation: wave-bar 0.9s ease-in-out 0.2s infinite; }
+.wave-bar-3 { animation: wave-bar 0.9s ease-in-out 0.4s infinite; }
+.wave-bar-4 { animation: wave-bar 0.9s ease-in-out 0.1s infinite; }
+
+/* ====================================================
+   5. ACCESSIBLE WORD DIFF TOKENS (<del> & <ins>)
+   ==================================================== */
+del {
+  text-decoration: line-through;
+  font-weight: 500;
+  border-radius: 6px;
+  padding: 2px 6px;
+  display: inline-block;
+  transition: all 0.15s ease;
+}
+
+ins {
+  text-decoration: none;
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 2px 6px;
+  display: inline-block;
+  transition: all 0.15s ease;
+}
+
+/* Dark mode diff highlights */
+html.dark del {
+  background-color: rgba(159, 18, 57, 0.35);
+  color: #fda4af;
+  border: 1px solid rgba(244, 63, 94, 0.5);
+}
+
+html.dark ins {
+  background-color: rgba(146, 64, 14, 0.35);
+  color: #fde68a;
+  border: 1px solid rgba(245, 158, 11, 0.5);
+}
+
+/* Light mode diff highlights */
+html.light del {
+  background-color: #ffe4e6;
+  color: #9f1239;
+  border: 1px solid #fecdd3;
+}
+
+html.light ins {
+  background-color: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+/* ====================================================
+   6. SLEEK CUSTOM AUDIO PLAYER & FORM CONTROLS
+   ==================================================== */
+audio {
+  filter: contrast(95%);
+  outline: none;
+}
+
+html.dark audio::-webkit-media-controls-panel {
+  background-color: #0f172a;
+  color: #e2e8f0;
+}
+
+html.light audio::-webkit-media-controls-panel {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+/* Interactive Focus Rings */
+button:focus-visible,
+select:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.4);
+}
+
+/* ====================================================
+   7. CUSTOM THIN SCROLLBARS
+   ==================================================== */
 ::-webkit-scrollbar {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
@@ -115,9 +277,11 @@ html.light ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
 
-/* Smooth Transitions for Day/Night Switching */
+/* ====================================================
+   8. FLUID THEME TRANSITIONS
+   ==================================================== */
 * {
-  transition-property: background-color, border-color, color, fill, stroke;
+  transition-property: background-color, border-color, color, fill, stroke, box-shadow;
   transition-duration: 150ms;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
