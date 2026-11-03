@@ -9,6 +9,7 @@ import CreateProjectModal from './components/CreateProjectModal';
 import CreateTestCaseModal from './components/CreateTestCaseModal';
 
 export default function App() {
+  const [theme, setTheme] = useState(() => localStorage.getItem('indic_theme') || 'dark');
   const [activeTab, setActiveTab] = useState('dashboard');
   const [projects, setProjects] = useState([]);
   const [activeProjectId, setActiveProjectId] = useState(null);
@@ -28,6 +29,17 @@ export default function App() {
   const [isSeeding, setIsSeeding] = useState(false);
   const [runningTestId, setRunningTestId] = useState(null);
   const [isRunningAll, setIsRunningAll] = useState(false);
+
+  // Theme switching effect
+  useEffect(() => {
+    document.documentElement.classList.remove('light', 'dark');
+    document.documentElement.classList.add(theme);
+    localStorage.setItem('indic_theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
+  };
 
   // Initial load
   useEffect(() => {
@@ -232,7 +244,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0b0f17] text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans transition-colors duration-200">
       {/* Top Navigation */}
       <Navbar
         activeTab={activeTab}
@@ -240,6 +252,8 @@ export default function App() {
         onOpenCreateProject={() => setIsCreateProjectOpen(true)}
         onSeedDemoData={handleSeedDemoData}
         isSeeding={isSeeding}
+        theme={theme}
+        onToggleTheme={toggleTheme}
       />
 
       {/* Main Content Area */}
