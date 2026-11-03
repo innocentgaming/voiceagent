@@ -4,6 +4,7 @@ const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
+const fs = require('fs');
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 const apiRoutes = require('./routes/api');
@@ -55,6 +56,16 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
+
+// Serve static client build if present in production
+const clientDistPath = path.join(__dirname, '../../client/dist');
+if (fs.existsSync(clientDistPath)) {
+  app.use(express.static(clientDistPath));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api') || req.path.startsWith('/uploads') || req.path === '/health') return next();
+    res.sendFile(path.join(clientDistPath, 'index.html'));
+  });
+}
 
 // Optional MongoDB Atlas connection
 if (process.env.MONGODB_URI) {
