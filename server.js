@@ -14,6 +14,8 @@ const cors = require('cors');
 const axios = require('axios');
 const path = require('path');
 const fs = require('fs');
+const { evaluateCriticalEntities, verifyEntity } = require('./server/src/services/entityEngine');
+const { normalizeNumbers } = require('./server/src/services/numberNormalizer');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -208,38 +210,6 @@ function calculateCER(reference, hypothesis, lang = 'hi') {
   const res = alignTokens(refChars, hypChars);
   const cer = parseFloat(((res.substitutions + res.deletions + res.insertions) / res.total).toFixed(4));
   return { cer, totalChars: res.total };
-}
-
-function evaluateCriticalEntities(predictedText, expectedEntities = []) {
-  if (!expectedEntities || expectedEntities.length === 0) {
-    return { entityAccuracy: 100, criticalFailureDetected: false, entityEvaluation: [] };
-  }
-
-  const normPred = normalizeIndicText(predictedText);
-  let passedCount = 0;
-
-  const entityEvaluation = expectedEntities.map(entity => {
-    const val = entity.expectedValue || entity.value || '';
-    const normExpected = normalizeIndicText(val);
-    const regex = new RegExp(`(^|\\s)${normExpected}(\\s|$)`, 'i');
-    const matched = regex.test(normPred) || normPred.includes(normExpected);
-
-    if (matched) {
-      passedCount++;
-    }
-
-    return {
-      entityType: entity.entityType || entity.type || 'entity',
-      expectedValue: val,
-      found: matched,
-      matchedContext: matched ? val : null
-    };
-  });
-
-  const entityAccuracy = Math.round((passedCount / expectedEntities.length) * 100);
-  const criticalFailureDetected = passedCount < expectedEntities.length;
-
-  return { entityAccuracy, criticalFailureDetected, entityEvaluation };
 }
 
 function autoExtractEntities(text) {

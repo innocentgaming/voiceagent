@@ -5,8 +5,11 @@
  * - Levenshtein DP sequence alignment with backpointers
  * - Word Error Rate (WER)
  * - Character Error Rate (CER) with Intl.Segmenter grapheme clustering
- * - Critical Entity Verification
+ * - Critical Entity Verification (3-state: PASS, NEAR_MISS, CRITICAL_MISMATCH)
  */
+
+const { evaluateCriticalEntities, verifyEntity } = require('./entityEngine');
+const { normalizeNumbers } = require('./numberNormalizer');
 
 /**
  * Unicode NFC Normalization, stripping Latin & Indic punctuation, whitespace collapsing
@@ -147,49 +150,6 @@ function calculateCER(reference, hypothesis, lang = 'hi') {
   return { cer, totalChars: alignment.totalReferenceTokens };
 }
 
-/**
- * Critical Entity Verification Engine
- */
-function evaluateCriticalEntities(predictedText, expectedEntities = []) {
-  if (!expectedEntities || expectedEntities.length === 0) {
-    return {
-      entityAccuracy: 100,
-      criticalFailureDetected: false,
-      entityEvaluation: []
-    };
-  }
-
-  const normPred = normalizeIndicText(predictedText);
-  let passedCount = 0;
-
-  const entityEvaluation = expectedEntities.map(entity => {
-    const rawVal = entity.expectedValue || entity.value || '';
-    const normExpected = normalizeIndicText(rawVal);
-
-    // Boundary-aware or whole substring inclusion match
-    const regex = new RegExp(`(^|\\s)${escapeRegExp(normExpected)}(\\s|$)`, 'i');
-    const matched = regex.test(normPred) || normPred.includes(normExpected);
-
-    if (matched) passedCount++;
-
-    return {
-      entityType: entity.entityType || entity.type || 'general',
-      expectedValue: rawVal,
-      found: matched,
-      matchedContext: matched ? normExpected : null
-    };
-  });
-
-  const entityAccuracy = Math.round((passedCount / expectedEntities.length) * 100);
-  const criticalFailureDetected = passedCount < expectedEntities.length;
-
-  return {
-    entityAccuracy,
-    criticalFailureDetected,
-    entityEvaluation
-  };
-}
-
 function escapeRegExp(string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
@@ -200,6 +160,8 @@ module.exports = {
   alignSequences,
   calculateWER,
   calculateCER,
-  evaluateCriticalEntities
+  evaluateCriticalEntities,
+  verifyEntity,
+  normalizeNumbers
 };
 

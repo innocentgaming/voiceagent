@@ -1,146 +1,178 @@
 /**
- * IndicVoice Lab - Critical Entity Evaluation Engine
- * Handles user-defined critical entities (Person, Amount, Date, Location, Number, etc.)
- * Evaluates whether expected entities are present in predicted transcript,
- * flags critical mismatches, and calculates Critical Entity Accuracy.
+ * IndicVoice Lab - Three-State Critical Entity Evaluation Engine
+ * Evaluates developer-defined entities (Amount, Date, Person, Location, etc.)
+ * Classifies outcomes into three distinct enterprise severity states:
+ * - PASS (1.0): Exact or normalized number match (e.g. "पाँच सौ" == "500")
+ * - NEAR_MISS (0.65 - 0.99): Grapheme phonetic/spelling variance (e.g. Rahul vs Rahool)
+ * - CRITICAL_MISMATCH (< 0.65 or any amount/date error): Factual error (e.g. Rahul vs Rohan, 500 vs 5000)
  */
 
-const { normalizeText } = require('./evalEngine');
+const { normalizeNumbers } = require('./numberNormalizer');
+
+const norm = s => normalizeNumbers(String(s || ''))
+  .toLowerCase()
+  .replace(/[^\p{L}\p{N}\s]/gu, '')
+  .trim();
 
 /**
- * Common number mappings in Indian contexts (English, Hindi, Hinglish words to digits)
+ * Grapheme-aware Levenshtein similarity using Intl.Segmenter
  */
-const NUMBER_WORD_MAP = {
-  // English
-  'one': '1', 'two': '2', 'three': '3', 'four': '4', 'five': '5',
-  'six': '6', 'seven': '7', 'eight': '8', 'nine': '9', 'ten': '10',
-  'hundred': '100', 'thousand': '1000', 'lakh': '100000', 'crore': '10000000',
-  // Hindi transliteration & Devanagari
-  'ek': '1', 'do': '2', 'teen': '3', 'chaar': '4', 'paanch': '5',
-  'chhe': '6', 'saat': '7', 'aath': '8', 'nau': '9', 'das': '10',
-  'sau': '100', 'hazaar': '1000',
-  'एक': '1', 'दो': '2', 'तीन': '3', 'चार': '4', 'पाँच': '5', 'पांच': '5',
-  'छह': '6', 'सात': '7', 'आठ': '8', 'नौ': '9', 'दस': '10',
-  'सौ': '100', 'हजार': '1000', 'लाख': '100000', 'करोड़': '10000000',
-  'पाचशे': '500', 'एक हजार': '1000'
-};
-
-/**
- * Normalizes an entity value for comparison
- */
-function normalizeEntityValue(val, type = '') {
-  if (val === undefined || val === null) return '';
-  let str = String(val).trim();
-  str = normalizeText(str);
-
-  // If entity is amount or number, also clean currency symbols like ₹, rs, rupees, etc.
-  if (type === 'amount' || type === 'number') {
-    str = str.replace(/(rs|inr|rupees|rupee|₹)/gi, '').trim();
-  }
-  return str;
-}
-
-/**
- * Checks if candidate entity value is found in predicted text.
- * Uses strict word boundary matching or normalized inclusion.
- */
-function isEntityInText(entityValue, entityType, predictedText) {
-  const normVal = normalizeEntityValue(entityValue, entityType);
-  const normText = normalizeText(predictedText);
-
-  if (!normVal) return false;
-
-  // 1. Direct substring check
-  if (normText.includes(normVal)) {
-    return true;
-  }
-
-  // 2. Numeric / Word equivalence check (e.g. '500' vs 'five hundred' or 'five hundred' vs '500')
-  if (entityType === 'amount' || entityType === 'number') {
-    // If expected is 500, check if 'five hundred' is in text
-    if (normVal === '500' && (normText.includes('five hundred') || normText.includes('paanch sau') || normText.includes('पाँच सौ') || normText.includes('पाचशे'))) {
-      return true;
-    }
-    // If expected is 'five hundred' and '500' is in text
-    if (normVal.includes('five hundred') && normText.includes('500')) {
-      return true;
+function similarity(a, b, lang = 'hi') {
+  const A = [...new Intl.Segmenter(lang, { granularity: 'grapheme' }).segment(a)].map(x => x.segment);
+  const B = [...new Intl.Segmenter(lang, { granularity: 'grapheme' }).segment(b)].map(x => x.segment);
+  const dp = Array.from({ length: A.length + 1 }, (_, i) => [i, ...Array(B.length).fill(0)]);
+  for (let j = 1; j <= B.length; j++) dp[0][j] = j;
+  for (let i = 1; i <= A.length; i++) {
+    for (let j = 1; j <= B.length; j++) {
+      dp[i][j] = Math.min(
+        dp[i - 1][j] + 1,
+        dp[i][j - 1] + 1,
+        dp[i - 1][j - 1] + (A[i - 1] === B[j - 1] ? 0 : 1)
+      );
     }
   }
-
-  // 3. Word token boundary check (e.g. 'Rahul' vs 'Rohan')
-  const valWords = normVal.split(/\s+/);
-  const allFound = valWords.every(w => {
-    const regex = new RegExp(`\\b${escapeRegExp(w)}\\b`, 'i');
-    return regex.test(normText);
-  });
-
-  return allFound;
+  return 1 - dp[A.length][B.length] / Math.max(A.length, B.length, 1);
 }
 
 function escapeRegExp(string) {
-  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return String(string).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 /**
- * Evaluates all critical entities defined for a test case.
- * @param {Array} expectedEntities - Array of { name, type, value, required }
- * @param {string} predictedText - Actual STT transcription from Gnani Prisma
- * @returns {Object} { passedCount, totalCount, score, hasCriticalMismatch, entities: [...] }
+ * Verifies a single entity against hypothesis transcript
+ * @returns { status: 'PASS' | 'NEAR_MISS' | 'CRITICAL_MISMATCH', score: number }
  */
-function evaluateCriticalEntities(expectedEntities = [], predictedText = '') {
-  if (!Array.isArray(expectedEntities) || expectedEntities.length === 0) {
+function verifyEntity(entity, hypothesis, lang = 'hi') {
+  const h = norm(hypothesis);
+  const rawVal = entity.value || entity.expectedValue || entity.name || '';
+  const e = norm(rawVal);
+  const type = (entity.type || entity.entityType || 'general').toLowerCase();
+
+  if (!e) return { status: 'CRITICAL_MISMATCH', score: 0.0 };
+
+  // Amounts, numbers, and dates NEVER get fuzzy credit
+  // Must match as standalone number boundary (e.g. 500 must not match 5000 or 50)
+  if (type === 'amount' || type === 'number' || type === 'date') {
+    const numRegex = new RegExp(`(^|[^0-9a-zA-Z])${escapeRegExp(e)}([^0-9a-zA-Z]|$)`);
+    if (numRegex.test(h)) {
+      return { status: 'PASS', score: 1.0 };
+    }
+    return { status: 'CRITICAL_MISMATCH', score: 0.0 };
+  }
+
+  // Exact or normalized substring match for text entities (names, locations, etc.)
+  if (h.includes(e) && e.length > 0) {
+    return { status: 'PASS', score: 1.0 };
+  }
+
+  // Names, locations, and phrases: find best-matching window of same word count
+  const hw = h.split(/\s+/).filter(Boolean);
+  const n = e.split(/\s+/).filter(Boolean).length;
+  let best = 0;
+
+  for (let i = 0; i + n <= hw.length; i++) {
+    const windowStr = hw.slice(i, i + n).join(' ');
+    best = Math.max(best, similarity(e, windowStr, lang));
+  }
+
+  // Single word fallback if window didn't capture
+  if (best === 0 && hw.length > 0 && n === 1) {
+    for (const w of hw) {
+      best = Math.max(best, similarity(e, w, lang));
+    }
+  }
+
+  best = Math.round(best * 1000) / 1000;
+
+  if (best >= 0.65) {
+    return { status: 'NEAR_MISS', score: best }; // Spelling / accent variant, flagged for review
+  }
+
+  return { status: 'CRITICAL_MISMATCH', score: best };
+}
+
+/**
+ * Evaluates an array of critical entities against predicted text.
+ */
+function evaluateCriticalEntities(expectedEntities = [], predictedText = '', lang = 'hi') {
+  // Support both (expectedEntities, predictedText) and (predictedText, expectedEntities)
+  let entitiesList = expectedEntities;
+  let hypText = predictedText;
+  if (typeof expectedEntities === 'string' && Array.isArray(predictedText)) {
+    hypText = expectedEntities;
+    entitiesList = predictedText;
+  }
+
+  if (!Array.isArray(entitiesList) || entitiesList.length === 0) {
     return {
       totalEntities: 0,
       matchedEntities: 0,
+      nearMissEntities: 0,
       mismatchedEntities: 0,
       entityAccuracy: 100,
       hasCriticalMismatch: false,
-      evaluatedEntities: []
+      criticalFailureDetected: false,
+      evaluatedEntities: [],
+      entityEvaluation: []
     };
   }
 
-  let matched = 0;
-  let mismatched = 0;
+  let passCount = 0;
+  let nearMissCount = 0;
+  let criticalCount = 0;
   const evaluatedEntities = [];
 
-  for (const entity of expectedEntities) {
-    const val = entity.value || entity.name || '';
-    const type = (entity.type || 'general').toLowerCase();
-    const isMatched = isEntityInText(val, type, predictedText);
+  for (const entity of entitiesList) {
+    const val = entity.value || entity.expectedValue || entity.name || '';
+    const type = (entity.type || entity.entityType || 'general').toLowerCase();
+    const result = verifyEntity(entity, hypText, lang);
 
-    if (isMatched) {
-      matched++;
+    if (result.status === 'PASS') {
+      passCount++;
+    } else if (result.status === 'NEAR_MISS') {
+      nearMissCount++;
     } else {
-      mismatched++;
+      criticalCount++;
     }
 
-    evaluatedEntities.push({
+    const item = {
       name: entity.name || entity.label || type,
       expectedValue: val,
       type,
-      matched: isMatched,
-      status: isMatched ? 'PASS' : 'FAIL',
-      severity: entity.severity || 'CRITICAL'
-    });
+      entityType: type,
+      status: result.status,
+      score: result.score,
+      found: result.status === 'PASS',
+      nearMiss: result.status === 'NEAR_MISS',
+      criticalMismatch: result.status === 'CRITICAL_MISMATCH',
+      severity: result.status === 'CRITICAL_MISMATCH' ? 'CRITICAL' : (result.status === 'NEAR_MISS' ? 'WARNING' : 'INFO')
+    };
+
+    evaluatedEntities.push(item);
   }
 
-  const total = expectedEntities.length;
-  const accuracy = total > 0 ? Math.round((matched / total) * 10000) / 100 : 100;
-  const hasCriticalMismatch = mismatched > 0;
+  const total = entitiesList.length;
+  // PASS counts full 100%, NEAR_MISS gives 50% partial credit towards soft score
+  const accuracy = total > 0 ? Math.round(((passCount + nearMissCount * 0.5) / total) * 100) : 100;
+  const hasCriticalMismatch = criticalCount > 0;
 
   return {
     totalEntities: total,
-    matchedEntities: matched,
-    mismatchedEntities: mismatched,
-    entityAccuracy: accuracy,
+    matchedEntities: passCount,
+    nearMissEntities: nearMissCount,
+    mismatchedEntities: criticalCount,
+    entityAccuracy: Math.round((passCount / total) * 100), // strict pass accuracy
+    effectiveAccuracy: accuracy,
     hasCriticalMismatch,
-    evaluatedEntities
+    criticalFailureDetected: hasCriticalMismatch,
+    evaluatedEntities,
+    entityEvaluation: evaluatedEntities // dual-field alias for API consistency
   };
 }
 
 module.exports = {
-  normalizeEntityValue,
-  isEntityInText,
+  norm,
+  similarity,
+  verifyEntity,
   evaluateCriticalEntities
 };
-

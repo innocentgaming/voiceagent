@@ -1,4 +1,5 @@
 const assert = require('assert');
+require('./numberNormalizer.test');
 const {
   normalizeIndicText,
   getGraphemeClusters,
@@ -84,7 +85,36 @@ assert.strictEqual(tc5Wer.wer, 1.0, 'TC-05 WER must be 1.0 (100% error)');
 assert.strictEqual(tc5Cer.cer, 1.0, 'TC-05 CER must be 1.0 (100% error)');
 console.log('  ✅ TC-05 Passed');
 
+// TC-06: Three-State Entity - Near Miss (Rahul vs Rahool)
+console.log('\n▶ TC-06: Three-State Entity - Near Miss (Rahul vs Rahool)');
+const tc6Hyp = "Send payment to Rahool";
+const tc6Entities = [{ entityType: 'person', expectedValue: 'Rahul' }];
+const tc6Res = evaluateCriticalEntities(tc6Hyp, tc6Entities);
+console.log(`  Status: ${tc6Res.evaluatedEntities[0].status}, Score: ${tc6Res.evaluatedEntities[0].score}`);
+assert.strictEqual(tc6Res.evaluatedEntities[0].status, 'NEAR_MISS', 'Rahul vs Rahool should be NEAR_MISS');
+console.log('  ✅ TC-06 Passed');
+
+// TC-07: Number Normalization Equivalence ("पाँच सौ" == "500")
+console.log('\n▶ TC-07: Number Normalization Equivalence ("पाँच सौ" == "500")');
+const tc7Hyp = "मैंने पाँच सौ रुपये भेज दिए";
+const tc7Entities = [{ entityType: 'amount', expectedValue: '500' }];
+const tc7Res = evaluateCriticalEntities(tc7Hyp, tc7Entities);
+console.log(`  Status: ${tc7Res.evaluatedEntities[0].status}, Found: ${tc7Res.evaluatedEntities[0].found}`);
+assert.strictEqual(tc7Res.evaluatedEntities[0].status, 'PASS', '"पाँच सौ" should match "500" as PASS');
+assert.strictEqual(tc7Res.criticalFailureDetected, false, 'Should have no critical failure');
+console.log('  ✅ TC-07 Passed');
+
+// TC-08: Negative Amount Match ("पाँच हज़ार" != "500")
+console.log('\n▶ TC-08: Negative Amount Match ("पाँच हज़ार" != "500")');
+const tc8Hyp = "मैंने पाँच हज़ार रुपये भेज दिए";
+const tc8Entities = [{ entityType: 'amount', expectedValue: '500' }];
+const tc8Res = evaluateCriticalEntities(tc8Hyp, tc8Entities);
+console.log(`  Status: ${tc8Res.evaluatedEntities[0].status}`);
+assert.strictEqual(tc8Res.evaluatedEntities[0].status, 'CRITICAL_MISMATCH', '"पाँच हज़ार" must NOT match "500"');
+assert.strictEqual(tc8Res.criticalFailureDetected, true, 'Should detect critical failure');
+console.log('  ✅ TC-08 Passed');
+
 console.log('\n===============================================================');
-console.log('🎉 ALL 5 EVALUATION VERIFICATION TESTS PASSED WITH 100% PRECISION!');
+console.log('🎉 ALL 8 EVALUATION & ENTITY NORMALIZATION TESTS PASSED!');
 console.log('===============================================================\n');
 
