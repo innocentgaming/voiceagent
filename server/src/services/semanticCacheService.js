@@ -1,48 +1,75 @@
 /**
- * IndicVoice Lab - Semantic Caching & Model Routing Engine
- * Provides:
- * - Semantic Cache with Cosine Similarity threshold matching
- * - Cache telemetry (hits, misses, latency saved)
- * - Intelligent Model Routing based on audio noise condition & target dialect
+ * IndicVoice Lab - Audio Fingerprint Cache & Model Routing Engine
+ * Benchmarking Rule: Caching is DISABLED BY DEFAULT so every evaluation represents
+ * true live/provider inference. Audio hash keying (SHA256) is used instead of expected text
+ * so two distinct audio clips never collide.
  */
 
+const crypto = require('crypto');
+const fs = require('fs');
 const { generateEmbedding, cosineSimilarity } = require('./ragVectorService');
 
+/**
+ * Creates SHA256 audio hash cache key
+ * Prevents identical transcriptions from colliding across different audio files.
+ */
+function createAudioCacheKey(audioPathOrBuffer, language = 'hi', provider = 'gnani') {
+  let buf;
+  if (Buffer.isBuffer(audioPathOrBuffer)) {
+    buf = audioPathOrBuffer;
+  } else if (typeof audioPathOrBuffer === 'string' && fs.existsSync(audioPathOrBuffer)) {
+    try {
+      buf = fs.readFileSync(audioPathOrBuffer);
+    } catch (e) {
+      return null;
+    }
+  } else {
+    return null;
+  }
+
+  const audioHash = crypto.createHash('sha256').update(buf).digest('hex');
+  return [
+    audioHash,
+    language,
+    provider,
+    process.env.STT_MODEL_VERSION || 'v1.0'
+  ].join(':');
+}
+
 class SemanticCache {
-  constructor(similarityThreshold = 0.96) {
+  constructor(similarityThreshold = 0.98) {
     this.threshold = similarityThreshold;
-    this.cache = []; // { key, embedding, result, timestamp, hits }
+    this.audioCache = new Map(); // audioKey -> { result, timestamp, hits }
     this.stats = {
       hits: 0,
       misses: 0,
-      totalQueries: 0
+      totalQueries: 0,
+      bypassed: 0
     };
   }
 
-  get(text) {
-    this.stats.totalQueries++;
-    if (!text) return null;
-    const queryVec = generateEmbedding(text);
-
-    let bestMatch = null;
-    let highestScore = 0;
-
-    for (const item of this.cache) {
-      const score = cosineSimilarity(queryVec, item.embedding);
-      if (score > highestScore) {
-        highestScore = score;
-        bestMatch = item;
-      }
+  /**
+   * Lookup cache by audio file or buffer
+   * Returns null if useCache is false (default for benchmarking).
+   */
+  get(audioPathOrBuffer, language = 'hi', provider = 'gnani', useCache = false) {
+    if (!useCache) {
+      this.stats.bypassed++;
+      return null;
     }
 
-    if (bestMatch && highestScore >= this.threshold) {
+    const key = createAudioCacheKey(audioPathOrBuffer, language, provider);
+    if (!key) return null;
+
+    this.stats.totalQueries++;
+    if (this.audioCache.has(key)) {
       this.stats.hits++;
-      bestMatch.hits++;
+      const item = this.audioCache.get(key);
+      item.hits++;
       return {
-        result: bestMatch.result,
-        score: highestScore,
-        cachedAt: bestMatch.timestamp,
-        isCached: true
+        ...item.result,
+        isCached: true,
+        cachedAt: item.timestamp
       };
     }
 
@@ -50,80 +77,69 @@ class SemanticCache {
     return null;
   }
 
-  set(text, result) {
-    if (!text) return;
-    const embedding = generateEmbedding(text);
-    this.cache.push({
-      key: text,
-      embedding,
+  set(audioPathOrBuffer, language, provider, result) {
+    const key = createAudioCacheKey(audioPathOrBuffer, language, provider);
+    if (!key || !result) return;
+
+    this.audioCache.set(key, {
       result,
       timestamp: new Date().toISOString(),
       hits: 0
     });
 
-    // Keep cache size bounded
-    if (this.cache.length > 500) {
-      this.cache.shift();
+    // Bound cache size
+    if (this.audioCache.size > 500) {
+      const oldestKey = this.audioCache.keys().next().value;
+      this.audioCache.delete(oldestKey);
     }
   }
 
   getStats() {
-    const hitRate = this.stats.totalQueries > 0
-      ? Math.round((this.stats.hits / this.stats.totalQueries) * 100)
-      : 0;
+    const total = this.stats.hits + this.stats.misses;
+    const hitRate = total > 0 ? Math.round((this.stats.hits / total) * 100) : 0;
     return {
-      ...this.stats,
+      hits: this.stats.hits,
+      misses: this.stats.misses,
+      bypassed: this.stats.bypassed,
       hitRate: `${hitRate}%`,
-      cacheSize: this.cache.length
+      cacheSize: this.audioCache.size
     };
-  }
-
-  clear() {
-    this.cache = [];
-    this.stats = { hits: 0, misses: 0, totalQueries: 0 };
   }
 }
 
 /**
- * Model Routing Engine
- * Recommends or selects model variant based on language and noise parameters
+ * Routes audio to optimal acoustic models based on SNR and language
  */
-function routeModel({ language = 'hindi', noiseLevel = 'clean', audioDurationSec = 5 }) {
-  const lang = language.toLowerCase();
-  const noise = noiseLevel.toLowerCase();
-
-  let selectedModel = 'gnani-prisma-hindi-v2';
-  let routingReason = 'Standard Hindi acoustic model';
-  let latencyEstimateMs = 280;
-
-  if (lang === 'marathi') {
-    selectedModel = 'gnani-prisma-marathi-v1';
-    routingReason = 'Optimized for Marathi phonetics and morphosyntax';
-    latencyEstimateMs = 320;
-  } else if (lang === 'hinglish') {
-    selectedModel = 'gnani-prisma-hinglish-neural';
-    routingReason = 'Code-mixed Hindi-English bilingual neural decoder';
-    latencyEstimateMs = 290;
+function routeModel(language, noiseLevel = 'clean') {
+  if (noiseLevel === 'severe_noise' || noiseLevel === '0dB') {
+    return {
+      selectedModel: 'Gnani-Prisma-Acoustic-Robust-v2',
+      reason: 'Heavy ambient noise profile requires robust beamforming front-end'
+    };
   }
-
-  if (noise.includes('traffic') || noise.includes('noise') || noise.includes('conversation')) {
-    selectedModel = `${selectedModel}-noise-robust`;
-    routingReason += ' + Noise-Suppression Pre-filter & Spectral Subtraction';
-    latencyEstimateMs += 60;
+  if (language === 'mr-IN' || language === 'marathi') {
+    return {
+      selectedModel: 'Gnani-Prisma-Marathi-Specialist',
+      reason: 'Devanagari conjunct and case-marker phonetic acoustic routing'
+    };
   }
-
+  if (language === 'hinglish') {
+    return {
+      selectedModel: 'Gnani-Prisma-CodeMixed-Hinglish',
+      reason: 'Sub-word acoustic tokens optimized for Hindi-Latin code alternation'
+    };
+  }
   return {
-    selectedModel,
-    routingReason,
-    latencyEstimateMs,
-    provider: 'Gnani Prisma Cloud Engine'
+    selectedModel: 'Gnani-Prisma-Standard-Hindi',
+    reason: 'Standard baseline model for conversational Hindi'
   };
 }
 
 const semanticCache = new SemanticCache();
 
 module.exports = {
+  createAudioCacheKey,
+  SemanticCache,
   semanticCache,
   routeModel
 };
-

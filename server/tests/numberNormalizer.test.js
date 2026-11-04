@@ -41,3 +41,4 @@ const t7 = normalizeNumbers("415");
 assert.notStrictEqual(t7, "450", "'415' must NOT match '450'");
 
 console.log('✅ ALL NUMBER NORMALIZER TESTS PASSED!');
+

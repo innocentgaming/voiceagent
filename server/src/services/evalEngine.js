@@ -140,14 +140,26 @@ function calculateWER(expectedText, predictedText) {
 }
 
 /**
- * Calculates Character Error Rate (CER)
+ * Grapheme-aware Character Tokenizer using Intl.Segmenter
+ * Ensures Indic conjuncts (संयुक्ताक्षर) and vowel matras stay as single visual graphemes.
  */
-function calculateCER(expectedText, predictedText) {
-  const normExpected = normalizeText(expectedText).replace(/\s+/g, '');
-  const normPredicted = normalizeText(predictedText).replace(/\s+/g, '');
+function getGraphemes(text, locale = "hi-IN") {
+  const normalized = normalizeText(text).replace(/\s+/g, "");
+  if (typeof Intl !== 'undefined' && typeof Intl.Segmenter === "function") {
+    const lang = locale.toLowerCase().startsWith('mr') ? 'mr' : 'hi';
+    const segmenter = new Intl.Segmenter(lang, { granularity: "grapheme" });
+    return Array.from(segmenter.segment(normalized), item => item.segment);
+  }
+  // Fallback: Unicode code points (explicitly noted in metadata)
+  return Array.from(normalized);
+}
 
-  const refChars = Array.from(normExpected);
-  const hypChars = Array.from(normPredicted);
+/**
+ * Calculates Character Error Rate (CER) with Indic Grapheme Clustering
+ */
+function calculateCER(expectedText, predictedText, locale = "hi-IN") {
+  const refChars = getGraphemes(expectedText, locale);
+  const hypChars = getGraphemes(predictedText, locale);
 
   const result = computeLevenshteinAlignment(refChars, hypChars);
   return {
@@ -155,7 +167,8 @@ function calculateCER(expectedText, predictedText) {
     charSubstitutions: result.substitutions,
     charDeletions: result.deletions,
     charInsertions: result.insertions,
-    charCount: result.refLength
+    charCount: result.refLength,
+    isGraphemeClustered: typeof Intl !== 'undefined' && typeof Intl.Segmenter === "function"
   };
 }
 
@@ -189,6 +202,7 @@ function evaluateTranscription(expectedText, predictedText) {
 
 module.exports = {
   normalizeText,
+  getGraphemes,
   calculateWER,
   calculateCER,
   evaluateTranscription

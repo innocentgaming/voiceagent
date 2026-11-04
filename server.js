@@ -20,6 +20,7 @@ const { observability, timedTranscribe, codeMixingIndex, pct } = require('./serv
 const { sttProviderService } = require('./server/src/services/sttProviderService');
 const { generateMarkdownReport, auditSemanticEquivalence } = require('./server/src/services/benchmarkReportGenerator');
 const { addNoiseToBuffer, simulateNoiseDegradation } = require('./server/src/services/noiseService');
+const { stressLabService } = require('./server/src/services/stressLabService');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -592,6 +593,35 @@ app.post('/api/evaluate-noise', upload.single('audio'), async (req, res) => {
   });
 });
 
+// Indian Voice Stress Lab (Clean, AWGN Noise, Low Volume, Clipping Distortion)
+app.post('/api/stress-lab/run', upload.single('audio'), async (req, res) => {
+  const { expectedTranscription, predictedTranscription, language = 'hi-IN', criticalEntities = '[]' } = req.body;
+  if (!expectedTranscription) return res.status(400).json({ error: 'Expected reference text is required' });
+
+  let parsedEntities = [];
+  try {
+    parsedEntities = typeof criticalEntities === 'string' ? JSON.parse(criticalEntities) : criticalEntities;
+  } catch (e) {
+    parsedEntities = [];
+  }
+
+  const suiteResult = await stressLabService.runStressSuite({
+    reference: expectedTranscription,
+    hypothesis: predictedTranscription,
+    language,
+    criticalEntities: parsedEntities
+  });
+
+  res.json({ success: true, suite: suiteResult });
+});
+
+app.post('/api/stress-lab/report', (req, res) => {
+  const { suite } = req.body;
+  if (!suite) return res.status(400).json({ error: 'Stress suite result required' });
+  const md = stressLabService.generateQAReport(suite);
+  res.json({ success: true, markdown: md });
+});
+
 // Slices View (Breakdown by Language, Accent, Noise Level, CMI Bucket)
 app.get('/api/slices', (req, res) => {
   const db = loadDb();
@@ -674,6 +704,9 @@ app.post('/api/tests/:id/run', async (req, res) => {
   let confidence = 0.94;
 
   let audioBuffer = null;
+  let isSimulated = true;
+  let providerLatencyMs = 0;
+
   if (testCase.audioFile) {
     const audioPath = path.join(UPLOADS_DIR, testCase.audioFile);
     if (fs.existsSync(audioPath)) {
@@ -681,18 +714,21 @@ app.post('/api/tests/:id/run', async (req, res) => {
     }
   }
 
+  const pStart = Date.now();
   try {
     const sttResult = await prismaService.transcribe(audioBuffer, 'audio/wav', testCase.language, predicted);
+    providerLatencyMs = Date.now() - pStart;
     predicted = sttResult.transcript;
     provider = sttResult.provider;
     confidence = sttResult.confidence;
+    isSimulated = sttResult.isSimulated !== false;
   } catch (err) {
+    providerLatencyMs = Date.now() - pStart;
     status = 'API_ERROR';
     errorMessage = err.message;
   }
 
-  const latencyMs = Date.now() - startTime;
-
+  const evalStart = Date.now();
   let metrics = {
     wer: null,
     cer: null,
@@ -705,7 +741,7 @@ app.post('/api/tests/:id/run', async (req, res) => {
   if (status === 'COMPLETED') {
     const werResult = calculateWER(testCase.expectedTranscription, predicted);
     const cerResult = calculateCER(testCase.expectedTranscription, predicted, testCase.language === 'mr-IN' ? 'mr' : 'hi');
-    const entityResult = evaluateCriticalEntities(predicted, testCase.criticalEntities);
+    const entityResult = evaluateCriticalEntities(testCase.criticalEntities, predicted, testCase.language === 'mr-IN' ? 'mr' : 'hi');
 
     metrics = {
       wer: werResult.wer,
@@ -713,6 +749,16 @@ app.post('/api/tests/:id/run', async (req, res) => {
       substitutions: werResult.substitutions,
       deletions: werResult.deletions,
       insertions: werResult.insertions,
+      totalWords: werResult.total,
+      entityAccuracy: entityResult.entityAccuracy,
+      criticalFailureDetected: entityResult.criticalFailureDetected
+    };
+    wordDiff = werResult.diff;
+    entityEvaluation = entityResult.entityEvaluation;
+  }
+
+  const evalLatencyMs = Date.now() - evalStart;
+  const totalLatencyMs = Date.now() - startTime;
       totalWords: werResult.total,
       entityAccuracy: entityResult.entityAccuracy,
       criticalFailureDetected: entityResult.criticalFailureDetected
@@ -732,11 +778,14 @@ app.post('/api/tests/:id/run', async (req, res) => {
     predictedTranscription: predicted,
     provider,
     confidence,
+    isSimulated,
+    providerLatencyMs,
+    evalLatencyMs,
+    latencyMs: totalLatencyMs,
     metrics,
     wordDiff,
     entityEvaluation,
     audioFile: testCase.audioFile,
-    latencyMs,
     errorMessage,
     createdAt: new Date().toISOString()
   };

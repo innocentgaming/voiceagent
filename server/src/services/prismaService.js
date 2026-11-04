@@ -2,7 +2,8 @@
  * IndicVoice Lab - Gnani Prisma STT Service Module
  * Handles authentication, audio dispatch, and response parsing for Gnani Prisma STT.
  * Keeps all provider logic isolated from controllers and never exposes keys to frontend.
- * Provides a mock/fallback simulation mode for local testing without active API credits.
+ * Provides explicit LIVE vs SIMULATED separation. Never silently converts a failed live request
+ * into a fake success.
  */
 
 const axios = require('axios');
@@ -15,7 +16,10 @@ const LANGUAGE_CODES = {
   hindi: 'hi',
   marathi: 'mr',
   hinglish: 'hi-en',
-  english: 'en-IN'
+  english: 'en-IN',
+  'hi-in': 'hi',
+  'mr-in': 'mr',
+  'en-in': 'en-IN'
 };
 
 /**
@@ -23,19 +27,31 @@ const LANGUAGE_CODES = {
  * @param {string} audioFilePath - Absolute path to uploaded audio file
  * @param {string} language - Target language (hindi, marathi, hinglish)
  * @param {Object} options - Additional options e.g. mock override
- * @returns {Promise<{transcript: string, confidence: number, rawMetadata: Object}>}
+ * @returns {Promise<{transcript: string, confidence: number, provider: string, isSimulated: boolean, rawMetadata: Object}>}
  */
 async function transcribeAudio(audioFilePath, language = 'hindi', options = {}) {
   const apiKey = process.env.GNANI_PRISMA_API_KEY;
   const accessKey = process.env.GNANI_PRISMA_ACCESS_KEY;
   const endpoint = process.env.GNANI_PRISMA_ENDPOINT || 'https://prisma.gnani.ai/api/v1/stt';
-  const langCode = LANGUAGE_CODES[language.toLowerCase()] || 'hi';
+  const langKey = String(language).toLowerCase().replace(/_/g, '-');
+  const langCode = LANGUAGE_CODES[langKey] || 'hi';
 
-  // If mock mode is explicitly forced or credentials are not yet configured
+  // 1. If explicit mock mode requested or no API credentials supplied
   if (process.env.USE_MOCK_PRISMA === 'true' || !apiKey || options.forceMock) {
     return runMockTranscription(audioFilePath, language, options);
   }
 
+  // 2. Validate audio file exists before attempting network request
+  if (!fs.existsSync(audioFilePath)) {
+    throw new Error(`Audio file not found at path: ${audioFilePath}`);
+  }
+
+  const stat = fs.statSync(audioFilePath);
+  if (stat.size < 100) {
+    throw new Error('Audio file is empty or corrupted (size < 100 bytes)');
+  }
+
+  // 3. Live API Request
   try {
     const formData = new FormData();
     formData.append('audio', fs.createReadStream(audioFilePath));
@@ -53,58 +69,50 @@ async function transcribeAudio(audioFilePath, language = 'hindi', options = {}) 
 
     const response = await axios.post(endpoint, formData, {
       headers,
-      timeout: 30000 // 30 second timeout
+      timeout: options.timeoutMs || 25000 // 25s timeout
     });
 
     const data = response.data;
-
-    // Gnani response structure handling
     const transcript = data.transcript || data.text || (data.results && data.results[0]?.transcript) || '';
     const confidence = data.confidence || 0.95;
 
     return {
       transcript: transcript.trim(),
       confidence,
-      provider: 'Gnani Prisma STT',
+      provider: 'Gnani Prisma STT (Live API)',
+      isSimulated: false,
       rawMetadata: data
     };
   } catch (error) {
-    console.error('Gnani Prisma STT API call failed:', error.message);
-    if (error.response) {
-      console.error('Response data:', error.response.data);
-    }
-    // If API call fails because of missing/invalid credentials, graceful fallback with warning
-    if (process.env.NODE_ENV !== 'production') {
-      console.warn('⚠️ Falling back to mock transcription due to API error.');
-      return runMockTranscription(audioFilePath, language, {
-        ...options,
-        apiError: error.message
-      });
-    }
-    throw new Error(`Gnani Prisma API Error: ${error.response?.data?.message || error.message}`);
+    // NEVER silently convert live failure to mock result!
+    const errorMsg = error.response?.data?.message || error.message;
+    console.error('Gnani Prisma Live API Failure:', errorMsg);
+    const err = new Error(`Gnani Prisma API Error (${error.response?.status || 500}): ${errorMsg}`);
+    err.isApiError = true;
+    err.statusCode = error.response?.status || 502;
+    throw err;
   }
 }
 
 /**
  * Mock transcription generator for testing & demo purposes
+ * Clearly stamped with isSimulated: true
  */
 function runMockTranscription(audioFilePath, language, options = {}) {
-  const filename = path.basename(audioFilePath).toLowerCase();
+  const filename = audioFilePath ? path.basename(audioFilePath).toLowerCase() : '';
   
-  // Provide realistic simulated responses based on demo samples
   let transcript = '';
   let confidence = 0.92;
 
   if (options.simulatedTranscript) {
     transcript = options.simulatedTranscript;
   } else if (filename.includes('rahul') || filename.includes('upi')) {
-    // PRD benchmark example
     transcript = 'I want to send five hundred rupees to Rohan.';
     confidence = 0.94;
-  } else if (filename.includes('hindi') || language === 'hindi') {
+  } else if (filename.includes('hindi') || language === 'hindi' || language === 'hi-IN') {
     transcript = 'मुझे पाँच सौ रुपये राहुल को भेजने हैं';
     confidence = 0.91;
-  } else if (filename.includes('marathi') || language === 'marathi') {
+  } else if (filename.includes('marathi') || language === 'marathi' || language === 'mr-IN') {
     transcript = 'मला पाचशे रुपये राहुलला पाठवायचे आहेत';
     confidence = 0.89;
   } else if (filename.includes('hinglish') || language === 'hinglish') {
@@ -120,12 +128,12 @@ function runMockTranscription(audioFilePath, language, options = {}) {
     confidence,
     provider: 'Gnani Prisma STT (Simulated / Local Mode)',
     isSimulated: true,
-    warning: options.apiError ? `API call failed (${options.apiError}), showing simulated result` : 'Running in local development simulation mode'
+    warning: 'Running in simulated benchmark mode (No GNANI_PRISMA_API_KEY configured)'
   };
 }
 
 module.exports = {
   transcribeAudio,
+  runMockTranscription,
   LANGUAGE_CODES
 };
-

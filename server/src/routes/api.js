@@ -20,6 +20,7 @@ const { MCP_TOOLS, handleMcpToolCall } = require('../services/mcpServer');
 const { sttProviderService } = require('../services/sttProviderService');
 const { generateMarkdownReport, auditSemanticEquivalence } = require('../services/benchmarkReportGenerator');
 const { simulateNoiseDegradation } = require('../services/noiseService');
+const { stressLabService } = require('../services/stressLabService');
 
 // Multer storage for uploaded audio
 const UPLOAD_DIR = path.join(__dirname, '../../uploads');
@@ -137,6 +138,36 @@ router.post('/evaluate-llm-judge', (req, res) => {
   }
 });
 
+// --- Indian Voice Stress Lab (Clean vs Stressed Degradation) ---
+router.post('/stress-lab/run', async (req, res) => {
+  try {
+    const { reference, hypothesis, language, criticalEntities } = req.body;
+    if (!reference) return res.status(400).json({ success: false, error: 'Reference text is required' });
+
+    const result = await stressLabService.runStressSuite({
+      reference,
+      hypothesis,
+      language: language || 'hi-IN',
+      criticalEntities: criticalEntities || []
+    });
+
+    res.json({ success: true, data: result });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+router.post('/stress-lab/report', (req, res) => {
+  try {
+    const { suite } = req.body;
+    if (!suite) return res.status(400).json({ success: false, error: 'Suite data required' });
+    const markdown = stressLabService.generateQAReport(suite);
+    res.json({ success: true, data: { markdown } });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // --- Projects ---
 router.post('/projects', async (req, res) => {
   try {
@@ -242,9 +273,15 @@ router.post('/tests/:id/run', async (req, res) => {
       return res.status(404).json({ success: false, error: 'Test case not found' });
     }
 
-    const audioPath = path.join(UPLOAD_DIR, testCase.audioFile);
-    if (!fs.existsSync(audioPath)) {
-      fs.writeFileSync(audioPath, 'MOCK_AUDIO_DATA');
+    const audioPath = testCase.audioFile ? path.join(UPLOAD_DIR, testCase.audioFile) : null;
+    const audioExists = audioPath && fs.existsSync(audioPath);
+
+    // If audio is missing and no override transcript provided, reject cleanly instead of injecting fake placeholder
+    if (!audioExists && !req.body.overrideTranscript) {
+      return res.status(400).json({ 
+        success: false, 
+        error: `Audio file for test case "${testCase.name}" is missing on server. Please upload an audio file first.` 
+      });
     }
 
     // 1. Model Routing
@@ -253,31 +290,47 @@ router.post('/tests/:id/run', async (req, res) => {
       noiseLevel: testCase.noiseLevel
     });
 
-    // 2. Semantic Cache Check
-    const cacheKey = `${testCase.language}:${testCase.expectedTranscription}:${testCase.noiseLevel}`;
-    const cachedEntry = semanticCache.get(cacheKey);
+    // 2. Audio Fingerprint Cache Check (Disabled by default for benchmark fidelity)
+    const useCache = req.body.useCache === true;
+    const cachedEntry = audioExists ? semanticCache.get(audioPath, testCase.language, routing.selectedModel, useCache) : null;
 
     let predicted = '';
     let confidence = 0.94;
     let provider = routing.selectedModel;
     let isCached = false;
+    let isSimulated = true;
+    let providerLatencyMs = 0;
 
     if (cachedEntry) {
-      predicted = cachedEntry.result.transcript;
-      confidence = cachedEntry.result.confidence;
+      predicted = cachedEntry.transcript;
+      confidence = cachedEntry.confidence;
       isCached = true;
+      isSimulated = cachedEntry.isSimulated === true;
+      providerLatencyMs = 2; // Cached hit latency
     } else {
-      // Call Gnani Prisma STT
+      // Call Speech Provider with timed latency measurement
+      const pStart = Date.now();
       const prismaResult = await transcribeAudio(audioPath, testCase.language, {
         simulatedTranscript: req.body.overrideTranscript
       });
+      providerLatencyMs = Date.now() - pStart;
+
       predicted = prismaResult.transcript;
       confidence = prismaResult.confidence;
       provider = prismaResult.provider;
+      isSimulated = prismaResult.isSimulated === true;
 
-      // Populate semantic cache
-      semanticCache.set(cacheKey, { transcript: predicted, confidence });
+      // Populate cache with audio SHA256 key if caching requested
+      if (useCache && audioExists) {
+        semanticCache.set(audioPath, testCase.language, provider, {
+          transcript: predicted,
+          confidence,
+          isSimulated
+        });
+      }
     }
+
+    const evalStart = Date.now();
 
     // 3. AI Guardrails Evaluation (PII Sanitization & Prompt Injection defense)
     const guardrails = evaluateGuardrails(predicted, testCase.expectedTranscription);
@@ -285,24 +338,43 @@ router.post('/tests/:id/run', async (req, res) => {
     // 4. RAG Domain Context Retrieval
     const ragContext = vectorDb.getEvaluationContext(testCase.expectedTranscription, testCase.language);
 
-    // 5. Transcription Evaluation (WER, CER, alignment)
+    // 5. Transcription Evaluation (WER, CER with Indic grapheme clustering)
     const evalResult = evaluateTranscription(testCase.expectedTranscription, predicted);
 
-    // 6. Critical Entity Evaluation
-    const entityResult = evaluateCriticalEntities(testCase.criticalEntities, predicted);
+    // 6. Critical Entity Evaluation (3-State: PASS, NEAR_MISS, CRITICAL_MISMATCH)
+    const entityResult = evaluateCriticalEntities(testCase.criticalEntities, predicted, testCase.language);
 
     // 7. Active Testing Persona
     const activePersona = personaEngine.getActivePersona();
 
-    const latencyMs = Date.now() - startTime;
+    const evalLatencyMs = Date.now() - evalStart;
+    const totalLatencyMs = Date.now() - startTime;
 
-    // 8. Record Test Run
+    // 8. Record Test Run with explicit isSimulated & separated latencies
     const runRecord = await storage.createTestRun({
       projectId: testCase.projectId,
       testCaseId: testCase._id,
       status: 'COMPLETED',
       expectedTranscription: testCase.expectedTranscription,
       predictedTranscription: predicted,
+      wer: evalResult.wer,
+      cer: evalResult.cer,
+      accuracy: evalResult.accuracy,
+      confidence,
+      provider,
+      isSimulated,
+      isCached,
+      providerLatencyMs,
+      evalLatencyMs,
+      latencyMs: totalLatencyMs,
+      details: evalResult.details,
+      alignment: evalResult.alignment,
+      entityEvaluation: entityResult,
+      routing,
+      guardrails,
+      ragContext,
+      persona: activePersona.name
+    });
       confidence,
       wer: evalResult.wer,
       cer: evalResult.cer,

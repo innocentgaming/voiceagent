@@ -1,6 +1,7 @@
 const assert = require('assert');
 require('./numberNormalizer.test');
 require('./advancedMetrics.test');
+require('./stressLab.test');
 const {
   normalizeIndicText,
   getGraphemeClusters,
