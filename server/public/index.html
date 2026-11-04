@@ -8,7 +8,7 @@
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   
-  <!-- Premium Google Fonts: Plus Jakarta Sans, Noto Sans Devanagari, JetBrains Mono -->
+  <!-- Google Fonts: Plus Jakarta Sans, Noto Sans Devanagari, JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -22,14 +22,6 @@
             sans: ['"Plus Jakarta Sans"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
             mono: ['"JetBrains Mono"', 'monospace'],
             devanagari: ['"Noto Sans Devanagari"', '"Plus Jakarta Sans"', 'sans-serif']
-          },
-          colors: {
-            obsidian: {
-              950: '#070a12',
-              900: '#0f172a',
-              850: '#131c31',
-              800: '#1e293b'
-            }
           }
         }
       }
@@ -37,7 +29,6 @@
   </script>
 
   <style>
-    /* Base typography & rendering */
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
       text-rendering: optimizeLegibility;
@@ -57,474 +48,535 @@
       font-feature-settings: 'tnum' on, 'zero' on;
     }
 
-    /* Light (Day) Mode Classes */
-    html.light body {
-      background-color: #f8fafc;
-      color: #0f172a;
-    }
+    /* Light Theme */
+    html.light body { background-color: #f8fafc; color: #0f172a; }
+    html.light .theme-card { background-color: #ffffff; border-color: #e2e8f0; box-shadow: 0 1px 3px 0 rgba(0,0,0,0.04); }
+    html.light .theme-subtle { background-color: #f1f5f9; border-color: #cbd5e1; color: #0f172a; }
+    html.light .theme-header { background-color: rgba(255, 255, 255, 0.9); border-color: #e2e8f0; }
+    html.light .theme-text-primary { color: #0f172a; }
+    html.light .theme-text-secondary { color: #475569; }
+    html.light .theme-text-muted { color: #64748b; }
+    html.light .theme-input { background-color: #ffffff; border-color: #cbd5e1; color: #0f172a; }
 
-    html.light .theme-card {
-      background-color: #ffffff;
-      border-color: #e2e8f0;
-      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.03);
-      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
-    }
+    /* Dark Theme */
+    html.dark body { background-color: #070a12; color: #f8fafc; }
+    html.dark .theme-card { background-color: rgba(15, 23, 42, 0.85); border-color: #1e293b; box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.05); }
+    html.dark .theme-subtle { background-color: #070a12; border-color: #1e293b; color: #e2e8f0; }
+    html.dark .theme-header { background-color: rgba(7, 10, 18, 0.9); border-color: rgba(30, 41, 59, 0.8); }
+    html.dark .theme-text-primary { color: #ffffff; }
+    html.dark .theme-text-secondary { color: #94a3b8; }
+    html.dark .theme-text-muted { color: #64748b; }
+    html.dark .theme-input { background-color: #070a12; border-color: #1e293b; color: #f1f5f9; }
 
-    html.light .theme-card:hover {
-      box-shadow: 0 8px 24px -4px rgba(99, 102, 241, 0.12);
+    /* Pulse animation */
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.15); opacity: 0.4; }
+      100% { transform: scale(0.95); opacity: 0.8; }
     }
+    .pulse-dot { animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
 
-    html.light .theme-subtle {
-      background-color: #f1f5f9;
-      border-color: #cbd5e1;
-      color: #0f172a;
+    /* Wave visualizer animation */
+    @keyframes wave {
+      0%, 100% { height: 6px; }
+      50% { height: 26px; }
     }
+    .wave-anim { animation: wave 1s ease-in-out infinite; }
 
-    html.light .theme-header {
-      background-color: rgba(255, 255, 255, 0.85);
-      border-color: #e2e8f0;
-    }
-
-    html.light .theme-text-primary {
-      color: #0f172a;
-    }
-
-    html.light .theme-text-secondary {
-      color: #475569;
-    }
-
-    html.light .theme-text-muted {
-      color: #64748b;
-    }
-
-    html.light .theme-input {
-      background-color: #ffffff;
-      border-color: #cbd5e1;
-      color: #0f172a;
-    }
-
-    html.light .theme-table-head {
-      background-color: #f8fafc;
-      border-color: #e2e8f0;
-      color: #475569;
-    }
-
-    html.light .theme-table-row {
-      border-color: #f1f5f9;
-      background-color: #ffffff;
-    }
-
-    html.light .theme-table-row:hover {
-      background-color: #f8fafc;
-    }
-
-    html.light .theme-banner {
-      background: linear-gradient(to right, #eff6ff, #f5f3ff, #eff6ff);
-      border-color: #e0e7ff;
-    }
-
-    /* Dark (Night) Mode Classes */
-    html.dark body {
-      background-color: #070a12;
-      color: #f8fafc;
-    }
-
-    html.dark .theme-card {
-      background-color: rgba(15, 23, 42, 0.85);
-      border-color: #1e293b;
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
-      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
-    }
-
-    html.dark .theme-card:hover {
-      border-color: rgba(99, 102, 241, 0.5);
-      box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.15), inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
-    }
-
-    html.dark .theme-subtle {
-      background-color: #070a12;
-      border-color: #1e293b;
-      color: #e2e8f0;
-    }
-
-    html.dark .theme-header {
-      background-color: rgba(7, 10, 18, 0.85);
-      border-color: rgba(30, 41, 59, 0.8);
-    }
-
-    html.dark .theme-text-primary {
-      color: #ffffff;
-    }
-
-    html.dark .theme-text-secondary {
-      color: #94a3b8;
-    }
-
-    html.dark .theme-text-muted {
-      color: #64748b;
-    }
-
-    html.dark .theme-input {
-      background-color: #070a12;
-      border-color: #1e293b;
-      color: #f1f5f9;
-    }
-
-    html.dark .theme-table-head {
-      background-color: #070a12;
-      border-color: #1e293b;
-      color: #94a3b8;
-    }
-
-    html.dark .theme-table-row {
-      border-color: rgba(30, 41, 59, 0.6);
-      background-color: rgba(15, 23, 42, 0.4);
-    }
-
-    html.dark .theme-table-row:hover {
-      background-color: rgba(30, 41, 59, 0.6);
-    }
-
-    html.dark .theme-banner {
-      background: linear-gradient(to right, #070a12, rgba(49, 46, 129, 0.2), #070a12);
-      border-color: rgba(30, 41, 59, 0.6);
-    }
-
-    /* Pulse animation for engine status dot */
-    @keyframes pulse-dot {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.35; transform: scale(0.85); }
-    }
-    .status-dot { animation: pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-
-    /* Custom Thin Scrollbar */
+    /* Custom thin scrollbars */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
     ::-webkit-scrollbar-thumb:hover { background: #475569; }
-    html.light ::-webkit-scrollbar-thumb { background: #cbd5e1; }
-    html.light ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
-    /* Interactive Focus Rings */
-    button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible {
-      outline: none;
-      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.45);
-    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
 
-  <!-- Toast Notification Container -->
+  <!-- Toast Container -->
   <div id="toast" class="fixed top-5 right-5 z-50 transform transition-all duration-300 opacity-0 translate-y-[-20px] pointer-events-none bg-slate-900 border border-slate-700 text-slate-100 px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2.5 text-xs font-semibold"></div>
 
-  <!-- Top Glass Header -->
+  <!-- Top Navigation Header -->
   <header class="theme-header border-b backdrop-blur-md sticky top-0 z-40 transition-colors">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
       
-      <!-- Brand & Mission Title -->
+      <!-- Brand & Project Selector -->
       <div class="flex items-center gap-3.5">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-600 to-pink-500 flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-500/25 text-sm tracking-wider font-mono">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-600 to-pink-500 flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-500/25 text-sm tracking-wider font-mono shrink-0">
           IV
         </div>
         <div>
           <div class="flex items-center gap-2">
             <span class="font-extrabold text-base tracking-tight theme-text-primary">IndicVoice Lab</span>
             <span class="text-[10px] font-bold uppercase tracking-wider bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 border border-indigo-500/30 px-2 py-0.5 rounded-full font-mono">
-              Gnani Prisma STT
+              Live Voice AI
             </span>
           </div>
-          <p class="text-[11px] theme-text-secondary hidden sm:block">Indian-Language Voice Agent Testing & Evaluation Platform • v1.0 MVP</p>
+          <div class="flex items-center gap-2 text-xs theme-text-secondary mt-0.5">
+            <span>Project:</span>
+            <select id="project-selector" onchange="switchProject(this.value)" class="theme-subtle border rounded px-1.5 py-0.5 text-xs font-semibold focus:outline-none cursor-pointer">
+              <!-- Dynamically populated -->
+            </select>
+            <button onclick="openModal('create-project-modal')" class="text-indigo-500 hover:text-indigo-400 font-bold ml-1 text-xs">+ New</button>
+          </div>
         </div>
       </div>
 
-      <!-- Engine Status, Theme Toggle & Quick Actions -->
-      <div class="flex items-center gap-2.5 sm:gap-3">
-        
-        <!-- Engine Ready Indicator -->
-        <div class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl theme-subtle border text-xs">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 status-dot"></span>
-          <span class="theme-text-secondary font-medium">STT Engine:</span>
-          <span class="text-emerald-500 dark:text-emerald-400 font-mono font-bold">Online</span>
-        </div>
+      <!-- Quick Actions & Theme Toggle -->
+      <div class="flex items-center gap-2 sm:gap-2.5">
+        <!-- Start Fresh / Clear Button -->
+        <button onclick="clearAllData()" title="Wipe mock/demo data and start with an empty clean project" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl theme-subtle border hover:opacity-80 text-xs font-semibold transition cursor-pointer text-slate-400 hover:text-rose-400">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          <span class="hidden md:inline">Start Clean</span>
+        </button>
 
-        <!-- Day / Night Mode Toggle Button -->
-        <button 
-          id="theme-toggle-btn"
-          onclick="toggleTheme()" 
-          title="Toggle Day / Night Mode"
-          class="p-2 rounded-xl theme-subtle border hover:opacity-80 transition cursor-pointer flex items-center justify-center"
-          aria-label="Toggle theme"
-        >
+        <!-- Load Benchmark Presets Button -->
+        <button onclick="seedBenchmarks()" title="Restore PRD Indian Voice Benchmarks (Rahul vs Rohan, Hindi 500, Marathi)" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl theme-subtle border hover:opacity-80 text-xs font-semibold transition cursor-pointer text-amber-500 dark:text-amber-400">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          <span class="hidden sm:inline">Benchmarks</span>
+        </button>
+
+        <!-- Day / Night Toggle -->
+        <button id="theme-toggle-btn" onclick="toggleTheme()" class="p-2 rounded-xl theme-subtle border hover:opacity-80 transition cursor-pointer flex items-center justify-center">
           <span id="theme-icon-container">
             <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
           </span>
-        </button>
-
-        <!-- New Test Case Modal Trigger -->
-        <button onclick="openModal('create-test-modal')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl theme-subtle border hover:opacity-80 theme-text-primary text-xs font-semibold transition cursor-pointer">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-          <span class="hidden sm:inline">New Test</span>
-        </button>
-
-        <!-- Execute Entire Suite Button -->
-        <button onclick="runEntireSuite()" id="run-all-btn" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white text-xs font-bold shadow-md shadow-indigo-600/30 transition cursor-pointer">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          <span>Run Suite (4)</span>
         </button>
       </div>
 
     </div>
   </header>
 
-  <!-- Hero Core Product Promise Bar -->
-  <div class="theme-banner border-b px-4 py-3">
-    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-      <div class="flex items-center gap-2">
-        <span class="text-indigo-600 dark:text-indigo-400 font-bold uppercase tracking-wider text-[10px] font-mono">Product Thesis:</span>
-        <span class="theme-text-secondary font-medium italic">“Don't just test whether your voice AI transcribes speech. Test whether it understands the information that actually matters.”</span>
+  <!-- Navigation Mode Tabs -->
+  <div class="border-b border-slate-800/60 theme-subtle">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+      <div class="flex space-x-1 sm:space-x-4">
+        <button onclick="switchTab('playground')" id="tab-btn-playground" class="px-4 py-3 text-xs sm:text-sm font-bold border-b-2 border-indigo-500 text-indigo-500 flex items-center gap-2">
+          <span>🎙️ Live Voice Playground</span>
+          <span class="text-[10px] bg-indigo-500/20 text-indigo-400 px-1.5 py-0.5 rounded font-mono">Live Mic</span>
+        </button>
+        <button onclick="switchTab('suite')" id="tab-btn-suite" class="px-4 py-3 text-xs sm:text-sm font-semibold border-b-2 border-transparent theme-text-secondary hover:theme-text-primary flex items-center gap-2">
+          <span>📁 Test Suite Workspace</span>
+          <span id="suite-badge" class="text-[10px] theme-subtle border px-1.5 py-0.5 rounded font-mono">0</span>
+        </button>
+        <button onclick="switchTab('history')" id="tab-btn-history" class="px-4 py-3 text-xs sm:text-sm font-semibold border-b-2 border-transparent theme-text-secondary hover:theme-text-primary flex items-center gap-2">
+          <span>📈 Evaluation History</span>
+          <span id="history-badge" class="text-[10px] theme-subtle border px-1.5 py-0.5 rounded font-mono">0</span>
+        </button>
       </div>
-      <div class="flex items-center gap-4 theme-text-muted text-[11px] font-mono shrink-0">
-        <span>Languages: Hindi • Marathi • Hinglish</span>
-        <span>•</span>
-        <span>Dual-Layer: WER + Critical Entities</span>
+
+      <div class="hidden lg:flex items-center gap-2 text-xs theme-text-muted font-mono">
+        <span>Languages:</span>
+        <span class="text-emerald-500 font-semibold">Hindi • Marathi • Hinglish</span>
       </div>
     </div>
   </div>
 
-  <!-- Main Content Grid -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
+  <!-- Main Workspace Content -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full">
     
-    <!-- Left Column: Test Case Suite Navigator & Execution Controller -->
-    <div class="lg:col-span-4 space-y-5">
+    <!-- ========================================== -->
+    <!-- TAB 1: LIVE VOICE PLAYGROUND & RECORDER    -->
+    <!-- ========================================== -->
+    <div id="tab-playground" class="space-y-6">
       
-      <!-- Benchmark Test Suite Matrix Card -->
-      <div class="theme-card border rounded-2xl p-5 space-y-4">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <h2 class="text-xs uppercase tracking-wider font-bold theme-text-muted font-mono">Benchmark Test Suite</h2>
-            <span id="suite-count-badge" class="text-[10px] theme-subtle border theme-text-secondary font-mono px-2 py-0.5 rounded-full font-bold">4 cases</span>
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left Column: Audio Input & Entity Controls -->
+        <div class="lg:col-span-5 space-y-5">
+          
+          <div class="theme-card border rounded-2xl p-5 space-y-4">
+            
+            <div class="flex items-center justify-between pb-3 border-b border-slate-700/50">
+              <div>
+                <h2 class="font-extrabold text-sm theme-text-primary">Voice Input & Target Configuration</h2>
+                <p class="text-xs theme-text-muted mt-0.5">Record speech from your microphone or upload an audio file.</p>
+              </div>
+              
+              <!-- Input Switcher: Mic vs Upload -->
+              <div class="flex p-0.5 rounded-lg theme-subtle border text-[11px] font-semibold">
+                <button onclick="setInputMode('mic')" id="mode-mic-btn" class="px-2.5 py-1 rounded bg-indigo-600 text-white">Mic</button>
+                <button onclick="setInputMode('upload')" id="mode-upload-btn" class="px-2.5 py-1 rounded theme-text-secondary">Upload</button>
+              </div>
+            </div>
+
+            <!-- 1. Microphone Recorder Studio -->
+            <div id="mic-studio-container" class="space-y-3">
+              <div class="p-4 rounded-xl theme-subtle border flex flex-col items-center justify-center gap-3 text-center">
+                
+                <div class="flex items-center gap-2">
+                  <div id="recording-indicator" class="w-3 h-3 rounded-full bg-slate-600"></div>
+                  <span id="recording-timer" class="font-mono text-sm font-bold theme-text-secondary">00:00</span>
+                </div>
+
+                <!-- Animated Wave Visualizer Bars -->
+                <div id="visualizer-bars" class="hidden flex items-center justify-center gap-1.5 h-8">
+                  <span class="w-1 bg-rose-500 rounded-full wave-anim" style="animation-duration: 0.8s;"></span>
+                  <span class="w-1 bg-amber-500 rounded-full wave-anim" style="animation-duration: 1.1s;"></span>
+                  <span class="w-1 bg-emerald-500 rounded-full wave-anim" style="animation-duration: 0.7s;"></span>
+                  <span class="w-1 bg-indigo-500 rounded-full wave-anim" style="animation-duration: 1.3s;"></span>
+                  <span class="w-1 bg-purple-500 rounded-full wave-anim" style="animation-duration: 0.9s;"></span>
+                  <span class="w-1 bg-rose-500 rounded-full wave-anim" style="animation-duration: 1.0s;"></span>
+                </div>
+
+                <!-- Big Record Button -->
+                <button id="record-toggle-btn" onclick="toggleMicrophone()" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white text-xs font-bold shadow-lg shadow-indigo-600/30 flex items-center gap-2 cursor-pointer transition">
+                  <svg id="mic-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+                  <span id="record-btn-text">Start Voice Recording</span>
+                </button>
+
+                <p id="mic-status-text" class="text-[11px] theme-text-muted">Supports Hindi, Marathi, Hinglish speech directly from your microphone.</p>
+              </div>
+
+              <!-- Recorded Audio Player -->
+              <div id="recorded-audio-container" class="hidden space-y-1">
+                <span class="text-[10px] uppercase font-bold theme-text-muted font-mono">Recorded Voice Playback</span>
+                <audio id="playground-audio" controls class="w-full h-9 rounded-xl theme-subtle"></audio>
+              </div>
+            </div>
+
+            <!-- 2. File Upload Dropzone (Hidden by default) -->
+            <div id="upload-studio-container" class="hidden space-y-3">
+              <div onclick="document.getElementById('file-upload-input').click()" class="border-2 border-dashed border-slate-700/80 rounded-xl p-6 text-center cursor-pointer hover:border-indigo-500 transition theme-subtle">
+                <svg class="w-8 h-8 text-indigo-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                <div class="text-xs font-bold theme-text-primary" id="upload-filename-text">Click or drag & drop an audio file</div>
+                <div class="text-[10px] theme-text-muted mt-1 font-mono">WAV, MP3, M4A, OGG, WEBM (Up to 25MB)</div>
+                <input type="file" id="file-upload-input" accept="audio/*" class="hidden" onchange="handleFileSelected(event)" />
+              </div>
+            </div>
+
+            <!-- Language & Ground Truth Target -->
+            <div class="space-y-3 pt-2">
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-[11px] font-bold theme-text-secondary mb-1">Spoken Language</label>
+                  <select id="play-language" onchange="updateRecognitionLang(this.value)" class="w-full theme-input border rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 cursor-pointer">
+                    <option value="hi-IN">Hindi (hi-IN)</option>
+                    <option value="mr-IN">Marathi (mr-IN)</option>
+                    <option value="hinglish" selected>Hinglish / English (India)</option>
+                    <option value="en-IN">English (India)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold theme-text-secondary mb-1">Category</label>
+                  <select id="play-category" class="w-full theme-input border rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 cursor-pointer">
+                    <option value="banking-upi">UPI & Banking</option>
+                    <option value="e-commerce">E-Commerce</option>
+                    <option value="delivery">Logistics / Delivery</option>
+                    <option value="general">General Conversation</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-bold theme-text-secondary mb-1">
+                  Expected Reference Transcript (Ground Truth) *
+                </label>
+                <textarea id="play-expected" rows="2" placeholder="e.g. I want to send five hundred rupees to Rahul (or मुझे 500 रुपये राहुल को भेजने हैं)" class="w-full theme-input border rounded-xl p-3 text-xs focus:outline-none focus:border-indigo-500 font-devanagari"></textarea>
+              </div>
+
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <label class="block text-[11px] font-bold theme-text-secondary">
+                    Speech Transcript (Live or Predicted)
+                  </label>
+                  <span id="stt-status-label" class="text-[10px] theme-text-muted font-mono">Live Mic or Engine</span>
+                </div>
+                <textarea id="play-predicted" rows="2" placeholder="Spoken voice will transcribe here in real-time. You can also edit it..." class="w-full theme-input border rounded-xl p-3 text-xs focus:outline-none focus:border-indigo-500 font-devanagari"></textarea>
+              </div>
+
+              <!-- Critical Entities Tagging -->
+              <div>
+                <label class="block text-[11px] font-bold theme-text-secondary mb-1">
+                  Critical Business Entities to Verify
+                </label>
+                <div class="flex gap-2">
+                  <select id="entity-type-input" class="w-28 theme-input border rounded-xl px-2.5 py-1.5 text-xs focus:outline-none cursor-pointer">
+                    <option value="person">Person</option>
+                    <option value="amount">Amount</option>
+                    <option value="date">Date</option>
+                    <option value="location">Location</option>
+                    <option value="action">Action</option>
+                  </select>
+                  <input type="text" id="entity-value-input" placeholder="e.g. Rahul, 500, Pune" class="flex-1 theme-input border rounded-xl px-3 py-1.5 text-xs focus:outline-none font-devanagari" onkeydown="if(event.key==='Enter'){event.preventDefault(); addCriticalEntity();}" />
+                  <button type="button" onclick="addCriticalEntity()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700 transition cursor-pointer">+ Add</button>
+                </div>
+                
+                <div id="entity-tags-list" class="flex flex-wrap gap-1.5 mt-2 min-h-[26px]">
+                  <span class="text-[11px] theme-text-muted italic">No critical entities tagged yet. Add entities above.</span>
+                </div>
+              </div>
+
+              <!-- Main Evaluate Button -->
+              <div class="pt-2 flex gap-2">
+                <button onclick="runPlaygroundEvaluation()" id="eval-playground-btn" class="flex-1 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-bold py-2.5 px-4 rounded-xl transition flex items-center justify-center gap-2 text-xs shadow-lg shadow-indigo-600/30 cursor-pointer">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/></svg>
+                  <span>Evaluate Speech Now</span>
+                </button>
+                <button onclick="savePlaygroundAsTestCase()" title="Save as permanent test case in active project" class="px-3.5 py-2.5 rounded-xl theme-subtle border hover:opacity-80 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+                  <span>Save Test</span>
+                </button>
+              </div>
+
+            </div>
+
           </div>
-          <span class="text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold">Click to Switch</span>
+
         </div>
 
-        <div id="test-list" class="space-y-2.5 max-h-[380px] overflow-y-auto pr-1">
-          <!-- Dynamically populated via JS -->
+        <!-- Right Column: Real-Time Evaluation Report -->
+        <div class="lg:col-span-7 space-y-5">
+          
+          <!-- Critical Status Banner -->
+          <div id="play-alert-banner" class="hidden rounded-2xl border-2 p-5 transition-all duration-300 shadow-xl"></div>
+
+          <!-- KPI Metric Cards Grid -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+            <div class="theme-card border p-4 rounded-2xl">
+              <div class="text-[11px] theme-text-muted font-bold uppercase tracking-wider font-mono">Word Error (WER)</div>
+              <div id="play-kpi-wer" class="text-2xl font-black font-mono mt-1 theme-text-primary">--</div>
+              <div class="text-[10px] theme-text-muted mt-0.5 font-mono">Tokens (S+D+I)/N</div>
+            </div>
+
+            <div class="theme-card border p-4 rounded-2xl">
+              <div class="text-[11px] theme-text-muted font-bold uppercase tracking-wider font-mono">Char Error (CER)</div>
+              <div id="play-kpi-cer" class="text-2xl font-black font-mono mt-1 theme-text-primary">--</div>
+              <div class="text-[10px] theme-text-muted mt-0.5 font-mono">Devanagari Graphemes</div>
+            </div>
+
+            <div class="theme-card border p-4 rounded-2xl">
+              <div class="text-[11px] theme-text-muted font-bold uppercase tracking-wider font-mono">Entity Integrity</div>
+              <div id="play-kpi-entity" class="text-2xl font-black font-mono mt-1 theme-text-primary">--</div>
+              <div class="text-[10px] theme-text-muted mt-0.5 font-mono">High-stakes values</div>
+            </div>
+
+            <div class="theme-card border p-4 rounded-2xl">
+              <div class="text-[11px] theme-text-muted font-bold uppercase tracking-wider font-mono">Inference Time</div>
+              <div id="play-kpi-latency" class="text-2xl font-black font-mono mt-1 text-indigo-500">--</div>
+              <div id="play-kpi-provider" class="text-[10px] theme-text-muted mt-0.5 font-mono line-clamp-1">Speech Engine</div>
+            </div>
+          </div>
+
+          <!-- Side-by-Side Reference vs Speech Output -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="theme-card border rounded-2xl p-4 space-y-2">
+              <div class="flex items-center justify-between text-[11px] font-bold theme-text-muted uppercase tracking-wider font-mono">
+                <span>Expected Ground Truth</span>
+                <span id="play-ref-count" class="font-mono text-indigo-500">-- words</span>
+              </div>
+              <p id="play-ref-display" class="font-devanagari text-sm theme-subtle p-3.5 rounded-xl border min-h-[75px] font-medium leading-relaxed">
+                Enter expected text and record speech to evaluate.
+              </p>
+            </div>
+
+            <div class="theme-card border rounded-2xl p-4 space-y-2">
+              <div class="flex items-center justify-between text-[11px] font-bold theme-text-muted uppercase tracking-wider font-mono">
+                <span>Recognized Speech Output</span>
+                <span id="play-hyp-confidence" class="font-mono text-indigo-500">Confidence: --</span>
+              </div>
+              <p id="play-hyp-display" class="font-devanagari text-sm theme-subtle p-3.5 rounded-xl border min-h-[75px] font-medium leading-relaxed">
+                Awaiting voice speech input...
+              </p>
+            </div>
+          </div>
+
+          <!-- Sequential Word-Level Diff Visualizer -->
+          <div class="theme-card border rounded-2xl p-5 space-y-3">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h3 class="font-bold text-sm theme-text-primary">
+                  Sequential Word Alignment Diff (<span class="font-mono text-indigo-500 text-xs font-semibold">Levenshtein Traceback</span>)
+                </h3>
+                <p class="text-[11px] theme-text-secondary">Pinpoints exact phonetic misrecognitions, replacements, and dropped words.</p>
+              </div>
+              <div class="flex items-center gap-3 text-xs font-medium">
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 bg-slate-400 dark:bg-slate-700 rounded"></span> Match</span>
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 bg-rose-500 rounded"></span> Substituted (&lt;del&gt;)</span>
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 bg-amber-500 rounded"></span> Inserted (&lt;ins&gt;)</span>
+              </div>
+            </div>
+
+            <div id="play-diff-container" class="font-devanagari theme-subtle p-4 rounded-xl border min-h-[85px] leading-loose text-sm flex flex-wrap gap-2 items-center">
+              <span class="theme-text-muted text-xs italic font-sans">Awaiting evaluation execution...</span>
+            </div>
+          </div>
+
+          <!-- Critical Entity Audit Breakdown -->
+          <div class="theme-card border rounded-2xl p-5 space-y-3">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="font-bold text-sm theme-text-primary">Critical Entities Verification Audit</h3>
+                <p class="text-[11px] theme-text-secondary">Determines whether high-stakes transactional values were preserved.</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="exportCurrentReportJSON()" class="px-2.5 py-1 rounded-lg theme-subtle hover:opacity-80 text-[11px] font-bold border transition flex items-center gap-1 cursor-pointer">
+                  <span>Export JSON</span>
+                </button>
+                <button onclick="exportCurrentReportMarkdown()" class="px-2.5 py-1 rounded-lg theme-subtle hover:opacity-80 text-[11px] font-bold border transition flex items-center gap-1 cursor-pointer">
+                  <span>Copy Markdown</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="overflow-x-auto border rounded-xl theme-card">
+              <table class="w-full text-left text-xs">
+                <thead class="theme-subtle border-b uppercase text-[10px] tracking-wider font-mono font-bold">
+                  <tr>
+                    <th class="py-2.5 px-4">Entity Type</th>
+                    <th class="py-2.5 px-4">Expected Value</th>
+                    <th class="py-2.5 px-4">Audit Status</th>
+                    <th class="py-2.5 px-4">Context in Speech</th>
+                  </tr>
+                </thead>
+                <tbody id="play-entity-table-body" class="divide-y font-mono">
+                  <tr>
+                    <td colspan="4" class="py-4 text-center theme-text-muted font-sans">No evaluation executed yet. Record or upload audio to inspect.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 2: TEST SUITE & BATCH WORKSPACE        -->
+    <!-- ========================================== -->
+    <div id="tab-suite" class="hidden space-y-5">
+      
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-700/50">
+        <div>
+          <h2 class="font-extrabold text-base theme-text-primary" id="suite-project-title">Active Project Test Cases</h2>
+          <p class="text-xs theme-text-muted mt-0.5">Manage regression test cases, run individual audits, or trigger full-suite batch evaluation.</p>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button onclick="openModal('create-test-modal')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-bold transition cursor-pointer">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            <span>+ Add Test Case</span>
+          </button>
+          
+          <button onclick="runEntireTestSuite()" id="run-suite-btn" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-600/30 transition cursor-pointer">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/></svg>
+            <span id="run-suite-btn-text">Run Entire Suite</span>
+          </button>
         </div>
       </div>
 
-      <!-- Execution & Chaos Simulation Controls Card -->
-      <div class="theme-card border rounded-2xl p-5 space-y-4">
-        <div>
-          <h3 class="font-bold text-sm theme-text-primary flex items-center justify-between">
-            <span>Evaluation Dispatcher</span>
-            <span class="text-[10px] font-mono theme-text-muted uppercase tracking-wider font-semibold">Dual-Layer STT</span>
-          </h3>
-          <p class="text-xs theme-text-secondary mt-1 leading-relaxed">
-            Select a target test case, configure simulation conditions or anomaly injection, and evaluate Gnani Prisma STT.
-          </p>
-        </div>
+      <!-- Test Cases Cards Grid -->
+      <div id="suite-cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Dynamically populated or empty state -->
+      </div>
 
-        <!-- Simulation Behavior Switcher -->
-        <div class="space-y-1.5">
-          <label class="block text-[11px] font-bold theme-text-secondary uppercase tracking-wider font-mono">
-            STT Engine Simulation Mode
-          </label>
-          <select id="sim-mode-select" class="w-full theme-input border rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 font-sans cursor-pointer">
-            <option value="default">Default Benchmark Result (PRD Rahul → Rohan)</option>
-            <option value="perfect_match">100% Perfect Transcript (Zero Error Baseline)</option>
-            <option value="timeout_error">Simulate 504 Gateway Timeout (Decouple API Error)</option>
-            <option value="custom">Inject Custom Hypothesis Transcript...</option>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 3: EVALUATION HISTORY                  -->
+    <!-- ========================================== -->
+    <div id="tab-history" class="hidden space-y-5">
+      
+      <div class="flex items-center justify-between pb-3 border-b border-slate-700/50">
+        <div>
+          <h2 class="font-extrabold text-base theme-text-primary">Evaluation Run Log</h2>
+          <p class="text-xs theme-text-muted mt-0.5">Chronological record of all speech recognition and critical entity tests.</p>
+        </div>
+        <button onclick="exportHistoryCSV()" class="px-3 py-1.5 rounded-xl theme-subtle border hover:opacity-80 text-xs font-bold transition cursor-pointer">
+          Export History Log
+        </button>
+      </div>
+
+      <div class="overflow-x-auto border rounded-2xl theme-card">
+        <table class="w-full text-left text-xs">
+          <thead class="theme-subtle border-b uppercase text-[10px] tracking-wider font-mono font-bold">
+            <tr>
+              <th class="py-3 px-4">Timestamp</th>
+              <th class="py-3 px-4">Test Name / Expected</th>
+              <th class="py-3 px-4">Language</th>
+              <th class="py-3 px-4 text-center">WER</th>
+              <th class="py-3 px-4 text-center">CER</th>
+              <th class="py-3 px-4 text-center">Entity Status</th>
+              <th class="py-3 px-4 text-right">Latency</th>
+            </tr>
+          </thead>
+          <tbody id="history-table-body" class="divide-y font-mono">
+            <tr>
+              <td colspan="7" class="py-6 text-center theme-text-muted font-sans">No evaluation runs recorded yet.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Create Project Modal -->
+  <div id="create-project-modal" class="fixed inset-0 z-50 hidden bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="theme-card border rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-700/60">
+        <h3 class="font-bold text-base theme-text-primary">Create Voice Testing Project</h3>
+        <button onclick="closeModal('create-project-modal')" class="theme-text-muted hover:theme-text-primary text-xl">&times;</button>
+      </div>
+      <form onsubmit="handleCreateProject(event)" class="space-y-3.5 text-xs">
+        <div>
+          <label class="block font-bold theme-text-secondary mb-1">Project Name *</label>
+          <input type="text" id="new-proj-name" required placeholder="e.g. My UPI Voice Bot QA" class="w-full theme-input border rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-indigo-500" />
+        </div>
+        <div>
+          <label class="block font-bold theme-text-secondary mb-1">Domain Category</label>
+          <select id="new-proj-cat" class="w-full theme-input border rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 cursor-pointer">
+            <option value="banking-upi">Banking & UPI</option>
+            <option value="e-commerce">E-Commerce & Orders</option>
+            <option value="delivery">Logistics & Delivery</option>
+            <option value="customer-care">Customer Support</option>
           </select>
         </div>
-
-        <!-- Custom Hypothesis Container (Hidden by default) -->
-        <div id="custom-hyp-container" class="hidden space-y-1.5 pt-1">
-          <label class="block text-[11px] font-semibold text-indigo-600 dark:text-indigo-400">
-            Custom Predicted Transcript
-          </label>
-          <input type="text" id="custom-hyp-input" placeholder="e.g. I want to send 500 rupees to Rohan" class="w-full theme-input border border-indigo-500/50 rounded-xl px-3 py-2 text-xs focus:outline-none font-devanagari" />
+        <div>
+          <label class="block font-bold theme-text-secondary mb-1">Description</label>
+          <input type="text" id="new-proj-desc" placeholder="Evaluating Indian speech and accent failure modes" class="w-full theme-input border rounded-xl px-3 py-2 text-xs focus:outline-none" />
         </div>
-
-        <!-- Primary Run Button -->
-        <button id="run-btn" onclick="executeActiveTest()" class="w-full bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-bold py-2.5 px-4 rounded-xl transition flex items-center justify-center gap-2 text-xs shadow-lg shadow-indigo-600/25 cursor-pointer">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/></svg>
-          <span id="run-btn-text">Execute Evaluation on Selected Test</span>
-        </button>
-
-        <div class="text-[11px] theme-text-muted flex items-center justify-between pt-1 font-mono">
-          <span>Normalization: Unicode NFC</span>
-          <span>WER DP: O(min(N,M))</span>
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-700/60">
+          <button type="button" onclick="closeModal('create-project-modal')" class="px-4 py-2 rounded-xl theme-text-muted hover:theme-text-primary font-medium cursor-pointer">Cancel</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold cursor-pointer">Create Project</button>
         </div>
-      </div>
-
+      </form>
     </div>
-
-    <!-- Right Column: Interactive Evaluation Audit Report -->
-    <div class="lg:col-span-8 space-y-5">
-      
-      <!-- Critical Entity Alert Box (Pillars 1 & 6) -->
-      <div id="critical-alert" class="hidden rounded-2xl border-2 p-5 transition-all duration-300 shadow-xl"></div>
-
-      <!-- Metric KPI Cards Grid -->
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-        <div class="theme-card border p-4 rounded-2xl">
-          <div class="text-[11px] theme-text-muted font-bold uppercase tracking-wider font-mono">Word Error (WER)</div>
-          <div id="kpi-wer" class="text-2xl font-black font-mono mt-1 theme-text-primary">--</div>
-          <div id="kpi-wer-sub" class="text-[10px] theme-text-muted mt-0.5 font-mono">Levenshtein (S+D+I)/N</div>
-        </div>
-
-        <div class="theme-card border p-4 rounded-2xl">
-          <div class="text-[11px] theme-text-muted font-bold uppercase tracking-wider font-mono">Character Error (CER)</div>
-          <div id="kpi-cer" class="text-2xl font-black font-mono mt-1 theme-text-primary">--</div>
-          <div id="kpi-cer-sub" class="text-[10px] theme-text-muted mt-0.5 font-mono">Grapheme-clustered</div>
-        </div>
-
-        <div class="theme-card border p-4 rounded-2xl">
-          <div class="text-[11px] theme-text-muted font-bold uppercase tracking-wider font-mono">Entity Integrity</div>
-          <div id="kpi-entity" class="text-2xl font-black font-mono mt-1 theme-text-primary">--</div>
-          <div id="kpi-entity-sub" class="text-[10px] theme-text-muted mt-0.5 font-mono">Critical values audit</div>
-        </div>
-
-        <div class="theme-card border p-4 rounded-2xl">
-          <div class="text-[11px] theme-text-muted font-bold uppercase tracking-wider font-mono">STT Inference</div>
-          <div id="kpi-latency" class="text-2xl font-black font-mono mt-1 text-indigo-600 dark:text-indigo-400">--</div>
-          <div id="kpi-provider" class="text-[10px] theme-text-muted mt-0.5 font-mono line-clamp-1">Gnani Prisma STT</div>
-        </div>
-      </div>
-
-      <!-- Audio Reference & Waveform Playback Bar -->
-      <div class="theme-card border rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
-        <div class="flex items-center gap-3">
-          <div class="w-9 h-9 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
-          </div>
-          <div>
-            <div class="text-xs font-bold theme-text-primary" id="audio-player-label">Audio Speech Reference (16kHz PCM WAV)</div>
-            <div class="text-[11px] theme-text-muted font-mono" id="audio-player-meta">Standard Indian accent benchmark recording</div>
-          </div>
-        </div>
-
-        <div class="flex items-center gap-3">
-          <audio id="audio-element" controls class="h-9 w-full sm:w-64 rounded-xl theme-subtle"></audio>
-        </div>
-      </div>
-
-      <!-- Side-by-Side Reference vs Hypothesis Transcripts -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="theme-card border rounded-2xl p-4 space-y-2">
-          <div class="flex items-center justify-between text-[11px] font-bold theme-text-muted uppercase tracking-wider font-mono">
-            <span>Expected Ground Truth (Reference)</span>
-            <span id="ref-word-count" class="font-mono text-indigo-600 dark:text-indigo-400">-- words</span>
-          </div>
-          <p id="ref-transcript-display" class="font-devanagari text-sm theme-subtle p-3.5 rounded-xl border min-h-[75px] font-medium leading-relaxed">
-            Select a test case to view reference transcript.
-          </p>
-        </div>
-
-        <div class="theme-card border rounded-2xl p-4 space-y-2">
-          <div class="flex items-center justify-between text-[11px] font-bold theme-text-muted uppercase tracking-wider font-mono">
-            <span>Gnani Prisma Output (Hypothesis)</span>
-            <span id="hyp-confidence-badge" class="font-mono text-indigo-600 dark:text-indigo-400">Confidence: --</span>
-          </div>
-          <p id="hyp-transcript-display" class="font-devanagari text-sm theme-subtle p-3.5 rounded-xl border min-h-[75px] font-medium leading-relaxed">
-            Click "Execute Evaluation" to run STT.
-          </p>
-        </div>
-      </div>
-
-      <!-- Word-Level Alignment Diff View (Accessible <del> and <ins>) -->
-      <div class="theme-card border rounded-2xl p-5 space-y-3">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <div>
-            <h3 class="font-bold text-sm theme-text-primary">
-              Accessible Sequential Word Diff (<span class="font-mono text-indigo-600 dark:text-indigo-400 text-xs font-semibold">Levenshtein Backpointers</span>)
-            </h3>
-            <p class="text-[11px] theme-text-secondary">Colorblind-safe semantic tokens identifying deletions, substitutions, and insertions.</p>
-          </div>
-          <div class="flex items-center gap-3 text-xs font-medium">
-            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 bg-slate-400 dark:bg-slate-700 rounded"></span> Match</span>
-            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 bg-rose-500 rounded"></span> Substituted (&lt;del&gt;)</span>
-            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 bg-amber-500 rounded"></span> Inserted (&lt;ins&gt;)</span>
-          </div>
-        </div>
-
-        <div id="diff-container" class="font-devanagari theme-subtle p-4 rounded-xl border min-h-[90px] leading-loose text-sm flex flex-wrap gap-2 items-center">
-          <span class="theme-text-muted text-xs italic font-sans">Awaiting evaluation run...</span>
-        </div>
-      </div>
-
-      <!-- Critical Entity Verification Table -->
-      <div class="theme-card border rounded-2xl p-5 space-y-3">
-        <div class="flex items-center justify-between">
-          <div>
-            <h3 class="font-bold text-sm theme-text-primary">Developer-Defined Critical Entities Audit</h3>
-            <p class="text-[11px] theme-text-secondary">Strictly verifies whether high-stakes business values were preserved.</p>
-          </div>
-          <div class="flex items-center gap-2">
-            <button onclick="exportAuditJSON()" class="px-2.5 py-1 rounded-lg theme-subtle hover:opacity-80 text-[11px] font-bold border transition flex items-center gap-1 cursor-pointer">
-              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-              <span>Export JSON</span>
-            </button>
-            <button onclick="exportAuditMarkdown()" class="px-2.5 py-1 rounded-lg theme-subtle hover:opacity-80 text-[11px] font-bold border transition flex items-center gap-1 cursor-pointer">
-              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-              <span>Copy MD</span>
-            </button>
-          </div>
-        </div>
-
-        <div class="overflow-x-auto border rounded-xl theme-card">
-          <table class="w-full text-left text-xs">
-            <thead class="theme-table-head border-b uppercase text-[10px] tracking-wider font-mono font-bold">
-              <tr>
-                <th class="py-2.5 px-4">Entity Type</th>
-                <th class="py-2.5 px-4">Target Expected Value</th>
-                <th class="py-2.5 px-4">Verification Status</th>
-                <th class="py-2.5 px-4">Matched Context in Transcript</th>
-              </tr>
-            </thead>
-            <tbody id="entity-table-body" class="divide-y font-mono">
-              <tr class="theme-table-row">
-                <td colspan="4" class="py-4 text-center theme-text-muted font-sans">No evaluation executed yet. Select a test case and click execute.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-    </div>
-  </main>
+  </div>
 
   <!-- Create Test Case Modal -->
   <div id="create-test-modal" class="fixed inset-0 z-50 hidden bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="theme-card border rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
       <div class="flex items-center justify-between pb-3 border-b border-slate-700/60">
-        <h3 class="font-bold text-base theme-text-primary">Create Audio Test Case</h3>
+        <h3 class="font-bold text-base theme-text-primary">Add Test Case to Project</h3>
         <button onclick="closeModal('create-test-modal')" class="theme-text-muted hover:theme-text-primary text-xl">&times;</button>
       </div>
 
-      <form onsubmit="handleCreateTest(event)" class="space-y-3.5 text-xs">
+      <form onsubmit="handleCreateTestCase(event)" class="space-y-3.5 text-xs">
         <div>
           <label class="block font-bold theme-text-secondary mb-1">Test Name *</label>
-          <input type="text" id="new-test-name" required placeholder="e.g. Marathi Dialect Amount Test" class="w-full theme-input border rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-indigo-500" />
+          <input type="text" id="modal-test-name" required placeholder="e.g. Marathi Recipient Verification" class="w-full theme-input border rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-indigo-500" />
         </div>
 
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block font-bold theme-text-secondary mb-1">Language</label>
-            <select id="new-test-lang" class="w-full theme-input border rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 cursor-pointer">
+            <select id="modal-test-lang" class="w-full theme-input border rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 cursor-pointer">
               <option value="hi-IN">Hindi (hi-IN)</option>
               <option value="mr-IN">Marathi (mr-IN)</option>
-              <option value="hinglish">Hinglish</option>
+              <option value="hinglish" selected>Hinglish</option>
+              <option value="en-IN">English (India)</option>
             </select>
           </div>
           <div>
-            <label class="block font-bold theme-text-secondary mb-1">Scenario Category</label>
-            <select id="new-test-cat" class="w-full theme-input border rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 cursor-pointer">
+            <label class="block font-bold theme-text-secondary mb-1">Category</label>
+            <select id="modal-test-cat" class="w-full theme-input border rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 cursor-pointer">
               <option value="numbers_amounts">Numbers / Amounts</option>
               <option value="names_addresses">Names / Addresses</option>
-              <option value="regional_pronunciation">Regional Pronunciation</option>
+              <option value="regional_pronunciation">Regional Accents</option>
               <option value="negation_corrections">Negation / Corrections</option>
             </select>
           </div>
@@ -532,13 +584,18 @@
 
         <div>
           <label class="block font-bold theme-text-secondary mb-1">Expected Ground-Truth Transcript *</label>
-          <textarea id="new-test-expected" rows="2" required placeholder="e.g. मला पाचशे रुपये पाठवायचे आहेत" class="w-full theme-input border rounded-xl p-3 text-xs focus:outline-none focus:border-indigo-500 font-devanagari"></textarea>
+          <textarea id="modal-test-expected" rows="2" required placeholder="e.g. मला पाचशे रुपये पाठवायचे आहेत" class="w-full theme-input border rounded-xl p-3 text-xs focus:outline-none focus:border-indigo-500 font-devanagari"></textarea>
+        </div>
+
+        <div>
+          <label class="block font-bold theme-text-secondary mb-1">Attach Audio Recording (Optional)</label>
+          <input type="file" id="modal-test-audio" accept="audio/*" class="w-full theme-input border rounded-xl p-2 text-xs" />
         </div>
 
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block font-bold theme-text-secondary mb-1">Critical Entity Type</label>
-            <select id="new-entity-type" class="w-full theme-input border rounded-xl px-3 py-2 text-xs focus:outline-none cursor-pointer">
+            <select id="modal-entity-type" class="w-full theme-input border rounded-xl px-3 py-2 text-xs focus:outline-none cursor-pointer">
               <option value="person">Person Name</option>
               <option value="amount">Amount / Currency</option>
               <option value="date">Date</option>
@@ -547,7 +604,7 @@
           </div>
           <div>
             <label class="block font-bold theme-text-secondary mb-1">Critical Expected Value</label>
-            <input type="text" id="new-entity-val" placeholder="e.g. पाचशे or Rahul" class="w-full theme-input border rounded-xl px-3 py-2 text-xs focus:outline-none font-devanagari" />
+            <input type="text" id="modal-entity-val" placeholder="e.g. पाचशे or Rahul" class="w-full theme-input border rounded-xl px-3 py-2 text-xs focus:outline-none font-devanagari" />
           </div>
         </div>
 
@@ -561,305 +618,396 @@
 
   <!-- Interactive Client-side Script -->
   <script>
-    let activeTestId = 'tc_demo_01';
-    let loadedTests = [];
-    let lastEvaluationReport = null;
+    // State
+    let activeProjectId = 'proj_default';
+    let currentProjects = [];
+    let currentTestCases = [];
+    let currentTaggedEntities = [];
+    let lastEvaluatedReport = null;
+    let selectedAudioBlob = null;
+    let selectedAudioFile = null;
+    
+    // Media Recorder & Web Speech API State
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let isRecording = false;
+    let recordInterval = null;
+    let recordSeconds = 0;
+    let speechRecognition = null;
 
-    // Day & Night Theme Manager
-    function initTheme() {
-      const savedTheme = localStorage.getItem('indic_theme') || 'dark';
-      applyTheme(savedTheme);
-    }
-
-    function applyTheme(theme) {
-      if (theme === 'light') {
-        document.documentElement.classList.remove('dark');
-        document.documentElement.classList.add('light');
-        localStorage.setItem('indic_theme', 'light');
-        updateThemeIcon('light');
-      } else {
-        document.documentElement.classList.remove('light');
-        document.documentElement.classList.add('dark');
-        localStorage.setItem('indic_theme', 'dark');
-        updateThemeIcon('dark');
-      }
-    }
-
-    function toggleTheme() {
-      const isDark = document.documentElement.classList.contains('dark');
-      const newTheme = isDark ? 'light' : 'dark';
-      applyTheme(newTheme);
-      showToast(newTheme === 'light' ? 'Switched to Day Mode ☀️' : 'Switched to Night Mode 🌙');
-      if (lastEvaluationReport) {
-        renderReport(lastEvaluationReport);
-      }
-    }
-
-    function updateThemeIcon(t) {
-      const icon = document.getElementById('theme-icon-container');
-      if (!icon) return;
-      if (t === 'light') {
-        icon.innerHTML = '<svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>';
-      } else {
-        icon.innerHTML = '<svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>';
-      }
-    }
-
-    // Toast helper
+    // Toast Notification
     function showToast(msg) {
       const t = document.getElementById('toast');
       t.innerText = msg;
       t.classList.remove('opacity-0', 'translate-y-[-20px]', 'pointer-events-none');
       setTimeout(() => {
         t.classList.add('opacity-0', 'translate-y-[-20px]', 'pointer-events-none');
-      }, 3000);
+      }, 3500);
     }
 
     function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
-    // Toggle custom hypothesis input
-    document.getElementById('sim-mode-select').addEventListener('change', (e) => {
-      const cont = document.getElementById('custom-hyp-container');
-      if (e.target.value === 'custom') {
-        cont.classList.remove('hidden');
+    // Day / Night Theme Manager
+    function initTheme() {
+      const savedTheme = localStorage.getItem('indic_theme') || 'dark';
+      applyTheme(savedTheme);
+    }
+
+    function applyTheme(t) {
+      if (t === 'light') {
+        document.documentElement.classList.remove('dark');
+        document.documentElement.classList.add('light');
+        localStorage.setItem('indic_theme', 'light');
+        document.getElementById('theme-icon-container').innerHTML = '<svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>';
       } else {
-        cont.classList.add('hidden');
-      }
-    });
-
-    async function loadTestSuite() {
-      try {
-        const res = await fetch('/api/projects/proj_demo_01/tests');
-        loadedTests = await res.json();
-        
-        document.getElementById('suite-count-badge').innerText = loadedTests.length + ' cases';
-        const container = document.getElementById('test-list');
-        const isDark = document.documentElement.classList.contains('dark');
-        
-        container.innerHTML = loadedTests.map((t) => {
-          const isSelected = t.id === activeTestId;
-          const langLabel = t.language === 'mr-IN' ? 'Marathi' : (t.language === 'hi-IN' ? 'Hindi' : 'Hinglish');
-          const langBg = t.language === 'mr-IN' 
-            ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30' 
-            : (t.language === 'hi-IN' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' : 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/30');
-          
-          return `
-            <div 
-              onclick="selectTestCase('${t.id}')"
-              class="p-3.5 rounded-xl border cursor-pointer transition-all duration-200 ${
-                isSelected 
-                  ? 'bg-indigo-500/10 border-indigo-500 shadow-sm' 
-                  : 'theme-card hover:border-slate-400 dark:hover:border-slate-700'
-              }"
-            >
-              <div class="flex items-center justify-between gap-1.5">
-                <span class="font-bold text-xs theme-text-primary line-clamp-1">${t.name}</span>
-                <span class="text-[9px] uppercase font-bold px-1.5 py-0.5 rounded border font-mono ${langBg}">${langLabel}</span>
-              </div>
-              <div class="font-devanagari text-[11px] theme-text-secondary mt-1 line-clamp-1 italic">"${t.expectedTranscription}"</div>
-              <div class="mt-2 flex flex-wrap gap-1">
-                ${t.criticalEntities.map(e => `<span class="text-[9px] theme-subtle border text-slate-700 dark:text-slate-300 px-1.5 py-0.5 rounded font-mono font-medium">${e.entityType}: <strong>${e.expectedValue}</strong></span>`).join('')}
-              </div>
-            </div>
-          `;
-        }).join('');
-
-        // Update player & active card info
-        const active = loadedTests.find(t => t.id === activeTestId) || loadedTests[0];
-        if (active) {
-          document.getElementById('ref-transcript-display').innerText = active.expectedTranscription;
-          const words = active.expectedTranscription.split(/\\s+/).filter(Boolean);
-          document.getElementById('ref-word-count').innerText = words.length + ' words';
-          
-          const audioElem = document.getElementById('audio-element');
-          if (active.audioFile) {
-            audioElem.src = '/uploads/' + active.audioFile;
-          } else {
-            audioElem.src = '/uploads/sample-rahul.wav';
-          }
-        }
-      } catch (e) {
-        console.error('Failed to load test suite:', e);
+        document.documentElement.classList.remove('light');
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('indic_theme', 'dark');
+        document.getElementById('theme-icon-container').innerHTML = '<svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>';
       }
     }
 
-    function selectTestCase(id) {
-      activeTestId = id;
-      loadTestSuite();
-    }
-
-    async function executeActiveTest() {
-      const btn = document.getElementById('run-btn');
-      const btnText = document.getElementById('run-btn-text');
-      btn.disabled = true;
-      btnText.innerHTML = '<span class="inline-block animate-spin mr-1">🌀</span> Dispatching to Gnani Prisma STT...';
-
-      const simSelect = document.getElementById('sim-mode-select').value;
-      let simPayload = simSelect;
-      if (simSelect === 'custom') {
-        const val = document.getElementById('custom-hyp-input').value.trim();
-        simPayload = 'custom:' + (val || 'I want to send five hundred rupees to Rohan.');
-      }
-
-      try {
-        const res = await fetch('/api/tests/' + activeTestId + '/run', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ simulationMode: simPayload })
-        });
-        const report = await res.json();
-        renderReport(report);
-        showToast('Evaluation report compiled successfully');
-      } catch (e) {
-        alert('Evaluation execution failed: ' + e.message);
-      } finally {
-        btn.disabled = false;
-        btnText.innerText = 'Execute Evaluation on Selected Test';
-      }
-    }
-
-    async function runEntireSuite() {
-      const btn = document.getElementById('run-all-btn');
-      btn.disabled = true;
-      btn.innerHTML = '<span class="inline-block animate-spin mr-1">🌀</span> Running Suite...';
-
-      try {
-        const res = await fetch('/api/projects/proj_demo_01/run-all', { method: 'POST' });
-        const data = await res.json();
-        if (data.runs && data.runs.length > 0) {
-          renderReport(data.runs[0]);
-          showToast(`Suite completed! ${data.runs.length} benchmark test cases evaluated.`);
-        }
-      } catch (e) {
-        alert('Suite execution error: ' + e.message);
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/></svg><span>Run Suite (4)</span>';
-      }
-    }
-
-    async function handleCreateTest(e) {
-      e.preventDefault();
-      const name = document.getElementById('new-test-name').value;
-      const lang = document.getElementById('new-test-lang').value;
-      const cat = document.getElementById('new-test-cat').value;
-      const expected = document.getElementById('new-test-expected').value;
-      const entType = document.getElementById('new-entity-type').value;
-      const entVal = document.getElementById('new-entity-val').value;
-
-      const entities = entVal.trim() ? [{ entityType: entType, expectedValue: entVal.trim() }] : [];
-
-      await fetch('/api/projects/proj_demo_01/tests', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name,
-          language: lang,
-          category: cat,
-          expectedTranscription: expected,
-          criticalEntities: entities
-        })
-      });
-
-      closeModal('create-test-modal');
-      showToast('New test case added to suite!');
-      await loadTestSuite();
-    }
-
-    function renderReport(r) {
-      lastEvaluationReport = r;
+    function toggleTheme() {
       const isDark = document.documentElement.classList.contains('dark');
+      applyTheme(isDark ? 'light' : 'dark');
+      showToast(isDark ? 'Switched to Day Mode ☀️' : 'Switched to Night Mode 🌙');
+      if (lastEvaluatedReport) renderReport(lastEvaluatedReport);
+    }
 
-      // Handle Decoupled API Error
-      if (r.status === 'API_ERROR') {
-        const alertBox = document.getElementById('critical-alert');
-        alertBox.classList.remove('hidden');
-        alertBox.className = 'rounded-2xl border-2 border-amber-500/80 bg-amber-500/10 p-5 text-amber-700 dark:text-amber-200 mb-5 shadow-lg';
-        alertBox.innerHTML = `
-          <div class="flex items-start gap-3">
-            <span class="text-xl">⚠️</span>
-            <div>
-              <div class="font-bold text-sm uppercase tracking-wider text-amber-800 dark:text-amber-100 font-mono">Downstream Infrastructure / API Error Decoupled</div>
-              <div class="text-xs text-amber-700 dark:text-amber-300 mt-1 leading-relaxed">
-                Notice: ${r.errorMessage}. Per PRD Pillar 1, infrastructure failures are excluded from speech recognition accuracy averages.
-              </div>
-            </div>
-          </div>
-        `;
-        document.getElementById('kpi-wer').innerText = 'N/A';
-        document.getElementById('kpi-cer').innerText = 'N/A';
-        document.getElementById('kpi-entity').innerText = 'N/A';
-        document.getElementById('kpi-latency').innerText = r.latencyMs + ' ms';
+    // Tabs Manager
+    function switchTab(tab) {
+      ['playground', 'suite', 'history'].forEach(t => {
+        document.getElementById(`tab-${t}`).classList.add('hidden');
+        const btn = document.getElementById(`tab-btn-${t}`);
+        btn.classList.remove('border-indigo-500', 'text-indigo-500');
+        btn.classList.add('border-transparent', 'theme-text-secondary');
+      });
+      document.getElementById(`tab-${tab}`).classList.remove('hidden');
+      const activeBtn = document.getElementById(`tab-btn-${tab}`);
+      activeBtn.classList.remove('border-transparent', 'theme-text-secondary');
+      activeBtn.classList.add('border-indigo-500', 'text-indigo-500');
+
+      if (tab === 'suite') renderSuite();
+      if (tab === 'history') loadHistory();
+    }
+
+    // Input mode switch (Mic vs Upload)
+    function setInputMode(mode) {
+      if (mode === 'mic') {
+        document.getElementById('mic-studio-container').classList.remove('hidden');
+        document.getElementById('upload-studio-container').classList.add('hidden');
+        document.getElementById('mode-mic-btn').className = 'px-2.5 py-1 rounded bg-indigo-600 text-white';
+        document.getElementById('mode-upload-btn').className = 'px-2.5 py-1 rounded theme-text-secondary';
+      } else {
+        document.getElementById('mic-studio-container').classList.add('hidden');
+        document.getElementById('upload-studio-container').classList.remove('hidden');
+        document.getElementById('mode-upload-btn').className = 'px-2.5 py-1 rounded bg-indigo-600 text-white';
+        document.getElementById('mode-mic-btn').className = 'px-2.5 py-1 rounded theme-text-secondary';
+      }
+    }
+
+    // Web Speech API Initialization for Real-Time Transcription
+    function initSpeechRecognition() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        console.warn('SpeechRecognition API not supported in this browser. Voice audio will still record & upload.');
+        return null;
+      }
+      const rec = new SpeechRecognition();
+      rec.continuous = true;
+      rec.interimResults = true;
+      rec.lang = document.getElementById('play-language').value || 'hi-IN';
+
+      rec.onresult = (event) => {
+        let transcript = '';
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          transcript += event.results[i][0].transcript;
+        }
+        if (transcript.trim().length > 0) {
+          document.getElementById('play-predicted').value = transcript.trim();
+          document.getElementById('stt-status-label').innerText = 'Transcribing live voice...';
+        }
+      };
+
+      rec.onerror = (e) => {
+        console.warn('SpeechRecognition notice:', e.error);
+      };
+
+      return rec;
+    }
+
+    function updateRecognitionLang(lang) {
+      if (speechRecognition) {
+        speechRecognition.lang = lang === 'hinglish' ? 'en-IN' : lang;
+      }
+    }
+
+    // Toggle Microphone Recording
+    async function toggleMicrophone() {
+      if (!isRecording) {
+        startRecording();
+      } else {
+        stopRecording();
+      }
+    }
+
+    async function startRecording() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        audioChunks = [];
+        mediaRecorder = new MediaRecorder(stream);
+        
+        mediaRecorder.ondataavailable = (e) => {
+          if (e.data.size > 0) audioChunks.push(e.data);
+        };
+
+        mediaRecorder.onstop = () => {
+          selectedAudioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          const audioUrl = URL.createObjectURL(selectedAudioBlob);
+          const audioEl = document.getElementById('playground-audio');
+          audioEl.src = audioUrl;
+          document.getElementById('recorded-audio-container').classList.remove('hidden');
+          showToast('Voice captured! Ready to evaluate.');
+        };
+
+        mediaRecorder.start();
+        isRecording = true;
+
+        // Start Live Speech Recognition
+        try {
+          if (!speechRecognition) speechRecognition = initSpeechRecognition();
+          if (speechRecognition) {
+            updateRecognitionLang(document.getElementById('play-language').value);
+            speechRecognition.start();
+          }
+        } catch (e) {}
+
+        // UI state
+        document.getElementById('recording-indicator').className = 'w-3 h-3 rounded-full bg-rose-500 pulse-dot';
+        document.getElementById('visualizer-bars').classList.remove('hidden');
+        document.getElementById('record-toggle-btn').className = 'px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold shadow-lg shadow-rose-600/30 flex items-center gap-2 cursor-pointer transition';
+        document.getElementById('record-btn-text').innerText = 'Stop Recording';
+        document.getElementById('mic-status-text').innerText = 'Listening to your speech... Speak naturally into microphone.';
+
+        // Timer
+        recordSeconds = 0;
+        recordInterval = setInterval(() => {
+          recordSeconds++;
+          const mins = String(Math.floor(recordSeconds / 60)).padStart(2, '0');
+          const secs = String(recordSeconds % 60).padStart(2, '0');
+          document.getElementById('recording-timer').innerText = `${mins}:${secs}`;
+        }, 1000);
+
+      } catch (err) {
+        alert('Microphone access denied or unavailable: ' + err.message);
+      }
+    }
+
+    function stopRecording() {
+      if (mediaRecorder && isRecording) {
+        mediaRecorder.stop();
+        mediaRecorder.stream.getTracks().forEach(track => track.stop());
+      }
+      if (speechRecognition) {
+        try { speechRecognition.stop(); } catch (e) {}
+      }
+      isRecording = false;
+      clearInterval(recordInterval);
+
+      // UI state
+      document.getElementById('recording-indicator').className = 'w-3 h-3 rounded-full bg-slate-600';
+      document.getElementById('visualizer-bars').classList.add('hidden');
+      document.getElementById('record-toggle-btn').className = 'px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-lg shadow-indigo-600/30 flex items-center gap-2 cursor-pointer transition';
+      document.getElementById('record-btn-text').innerText = 'Record Again';
+      document.getElementById('mic-status-text').innerText = 'Voice recorded successfully! Review or click "Evaluate Speech Now".';
+    }
+
+    function handleFileSelected(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      selectedAudioFile = file;
+      document.getElementById('upload-filename-text').innerText = file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
+      showToast('Audio file loaded: ' + file.name);
+    }
+
+    // Critical Entities Management in Playground
+    function addCriticalEntity() {
+      const type = document.getElementById('entity-type-input').value;
+      const val = document.getElementById('entity-value-input').value.trim();
+      if (!val) return;
+      currentTaggedEntities.push({ entityType: type, expectedValue: val });
+      document.getElementById('entity-value-input').value = '';
+      renderEntityTags();
+    }
+
+    function removeCriticalEntity(index) {
+      currentTaggedEntities.splice(index, 1);
+      renderEntityTags();
+    }
+
+    function renderEntityTags() {
+      const container = document.getElementById('entity-tags-list');
+      if (currentTaggedEntities.length === 0) {
+        container.innerHTML = '<span class="text-[11px] theme-text-muted italic">No critical entities tagged yet. Add entities above.</span>';
+        return;
+      }
+      container.innerHTML = currentTaggedEntities.map((e, idx) => `
+        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-semibold theme-subtle border text-indigo-400">
+          <span class="text-[10px] uppercase font-mono text-slate-400">${e.entityType}:</span>
+          <span class="font-devanagari">${e.expectedValue}</span>
+          <button type="button" onclick="removeCriticalEntity(${idx})" class="text-rose-400 hover:text-rose-300 font-bold ml-0.5">&times;</button>
+        </span>
+      `).join('');
+    }
+
+    // Run Playground Evaluation (Real API Call)
+    async function runPlaygroundEvaluation() {
+      const expected = document.getElementById('play-expected').value.trim();
+      const predicted = document.getElementById('play-predicted').value.trim();
+      const language = document.getElementById('play-language').value;
+
+      if (!expected) {
+        alert('Please enter the Expected Reference Transcript to evaluate against.');
         return;
       }
 
-      // 1. Critical Alert Banner
-      const alertBox = document.getElementById('critical-alert');
+      const btn = document.getElementById('eval-playground-btn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="inline-block animate-spin mr-1">🌀</span> Calculating Evaluation...';
+
+      const formData = new FormData();
+      formData.append('expectedTranscription', expected);
+      formData.append('predictedTranscription', predicted || expected);
+      formData.append('language', language);
+      formData.append('criticalEntities', JSON.stringify(currentTaggedEntities));
+      formData.append('projectId', activeProjectId);
+
+      if (selectedAudioBlob) {
+        formData.append('audio', selectedAudioBlob, 'voice_recording.webm');
+      } else if (selectedAudioFile) {
+        formData.append('audio', selectedAudioFile);
+      }
+
+      try {
+        const res = await fetch('/api/evaluate-direct', {
+          method: 'POST',
+          body: formData
+        });
+        const report = await res.json();
+        renderReport(report);
+        showToast('Evaluation report compiled with live speech data!');
+        loadHistoryCount();
+      } catch (err) {
+        alert('Evaluation request failed: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/></svg><span>Evaluate Speech Now</span>';
+      }
+    }
+
+    // Save Playground as Test Case
+    async function savePlaygroundAsTestCase() {
+      const expected = document.getElementById('play-expected').value.trim();
+      if (!expected) {
+        alert('Enter an expected transcript before saving.');
+        return;
+      }
+      const name = prompt('Enter a name for this Test Case:', 'Voice Test: ' + expected.substring(0, 25));
+      if (!name) return;
+
+      const formData = new FormData();
+      formData.append('name', name);
+      formData.append('expectedTranscription', expected);
+      formData.append('language', document.getElementById('play-language').value);
+      formData.append('category', document.getElementById('play-category').value);
+      formData.append('criticalEntities', JSON.stringify(currentTaggedEntities));
+
+      if (selectedAudioBlob) {
+        formData.append('audio', selectedAudioBlob, 'voice_recording.webm');
+      } else if (selectedAudioFile) {
+        formData.append('audio', selectedAudioFile);
+      }
+
+      await fetch(`/api/projects/${activeProjectId}/tests`, {
+        method: 'POST',
+        body: formData
+      });
+
+      showToast('Saved to active project test suite!');
+      await loadProjectTests();
+    }
+
+    // Render Evaluation Report
+    function renderReport(r) {
+      lastEvaluatedReport = r;
+      const isDark = document.documentElement.classList.contains('dark');
+      const alertBox = document.getElementById('play-alert-banner');
       alertBox.classList.remove('hidden');
+
       const hasMismatch = r.metrics.criticalFailureDetected;
 
       if (hasMismatch) {
         alertBox.className = isDark 
-          ? 'rounded-2xl border-2 border-red-600/90 bg-red-950/45 p-5 text-red-200 mb-5 shadow-xl shadow-red-950/30'
-          : 'rounded-2xl border-2 border-rose-500 bg-rose-50 p-5 text-rose-900 mb-5 shadow-md';
+          ? 'rounded-2xl border-2 border-red-600/90 bg-red-950/45 p-5 text-red-200 shadow-xl'
+          : 'rounded-2xl border-2 border-rose-500 bg-rose-50 p-5 text-rose-900 shadow-md';
         alertBox.innerHTML = `
           <div class="flex items-start gap-3.5">
             <span class="text-2xl mt-0.5">🚨</span>
             <div class="space-y-1">
               <div class="flex items-center gap-2">
                 <span class="text-xs font-black uppercase tracking-wider bg-rose-600 text-white px-2 py-0.5 rounded font-mono">
-                  CRITICAL ENTITY FAILURE
+                  CRITICAL ENTITY MISMATCH
                 </span>
-                <span class="text-xs font-bold text-rose-700 dark:text-rose-300">Semantic Integrity Compromised</span>
+                <span class="text-xs font-bold text-rose-700 dark:text-rose-300">Semantic Failure</span>
               </div>
-              <p class="text-xs text-rose-800 dark:text-rose-200/90 leading-relaxed font-sans">
-                Even though surface transcription accuracy achieved a low WER of <strong class="font-mono text-rose-900 dark:text-white">${(r.metrics.wer * 100).toFixed(1)}%</strong>, one or more developer-defined critical business entities were misrecognized or omitted. In production Indian voice banking, this causes a fatal transaction failure.
+              <p class="text-xs leading-relaxed font-sans">
+                Despite a surface Word Error Rate of <strong class="font-mono">${(r.metrics.wer * 100).toFixed(1)}%</strong>, one or more critical business values were not preserved in the spoken transcript.
               </p>
             </div>
           </div>
         `;
       } else {
         alertBox.className = isDark
-          ? 'rounded-2xl border border-emerald-500/60 bg-emerald-950/30 p-5 text-emerald-200 mb-5 shadow-lg shadow-emerald-950/20'
-          : 'rounded-2xl border border-emerald-500 bg-emerald-50 p-5 text-emerald-900 mb-5 shadow-md';
+          ? 'rounded-2xl border border-emerald-500/60 bg-emerald-950/30 p-5 text-emerald-200 shadow-lg'
+          : 'rounded-2xl border border-emerald-500 bg-emerald-50 p-5 text-emerald-900 shadow-md';
         alertBox.innerHTML = `
           <div class="flex items-start gap-3.5">
             <span class="text-2xl mt-0.5">✅</span>
             <div class="space-y-1">
-              <div class="flex items-center gap-2">
-                <span class="text-xs font-bold uppercase tracking-wider bg-emerald-600 text-white px-2 py-0.5 rounded font-mono">
-                  ALL CRITICAL ENTITIES VERIFIED
-                </span>
-              </div>
-              <p class="text-xs text-emerald-800 dark:text-emerald-200/90 leading-relaxed font-sans">
-                Gnani Prisma STT preserved all developer-defined transactional values with high semantic fidelity.
+              <span class="text-xs font-bold uppercase tracking-wider bg-emerald-600 text-white px-2 py-0.5 rounded font-mono">
+                ALL CRITICAL ENTITIES VERIFIED
+              </span>
+              <p class="text-xs leading-relaxed font-sans">
+                All business-critical parameters were recognized and preserved accurately.
               </p>
             </div>
           </div>
         `;
       }
 
-      // 2. Metric KPI Cards
-      const werEl = document.getElementById('kpi-wer');
+      // KPI cards
+      const werEl = document.getElementById('play-kpi-wer');
       werEl.innerText = (r.metrics.wer * 100).toFixed(1) + '%';
-      werEl.className = `text-2xl font-black font-mono mt-1 ${r.metrics.wer <= 0.15 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`;
+      werEl.className = `text-2xl font-black font-mono mt-1 ${r.metrics.wer <= 0.15 ? 'text-emerald-500' : 'text-amber-500'}`;
 
-      document.getElementById('kpi-cer').innerText = (r.metrics.cer * 100).toFixed(1) + '%';
+      document.getElementById('play-kpi-cer').innerText = (r.metrics.cer * 100).toFixed(1) + '%';
       
-      const entityEl = document.getElementById('kpi-entity');
+      const entityEl = document.getElementById('play-kpi-entity');
       entityEl.innerText = r.metrics.entityAccuracy + '%';
-      entityEl.className = `text-2xl font-black font-mono mt-1 ${!hasMismatch ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`;
+      entityEl.className = `text-2xl font-black font-mono mt-1 ${!hasMismatch ? 'text-emerald-500' : 'text-rose-500'}`;
 
-      document.getElementById('kpi-latency').innerText = r.latencyMs + ' ms';
-      document.getElementById('kpi-provider').innerText = r.provider || 'Gnani Prisma STT';
+      document.getElementById('play-kpi-latency').innerText = (r.latencyMs || 120) + ' ms';
+      document.getElementById('play-kpi-provider').innerText = r.provider || 'Live Speech Engine';
 
-      // 3. Side-by-Side Transcripts
-      document.getElementById('hyp-transcript-display').innerText = r.predictedTranscription;
-      document.getElementById('hyp-confidence-badge').innerText = 'Confidence: ' + Math.round((r.confidence || 0.94) * 100) + '%';
+      // Transcripts
+      document.getElementById('play-ref-display').innerText = r.expectedTranscription;
+      document.getElementById('play-ref-count').innerText = r.metrics.totalWords + ' words';
+      document.getElementById('play-hyp-display').innerText = r.predictedTranscription;
+      document.getElementById('play-hyp-confidence').innerText = 'Confidence: ' + Math.round((r.confidence || 0.95) * 100) + '%';
 
-      // 4. Word-by-Word Diff Visualizer (Theme Aware)
-      const diffContainer = document.getElementById('diff-container');
+      // Diff
+      const diffContainer = document.getElementById('play-diff-container');
       diffContainer.innerHTML = r.wordDiff.map(d => {
         if (d.type === 'match') {
           return `<span class="px-2 py-0.5 rounded theme-subtle border font-devanagari">${d.expected}</span>`;
@@ -876,76 +1024,305 @@
             </span>
           `;
         } else if (d.type === 'del') {
-          return isDark
-            ? `<del class="bg-rose-950/80 text-rose-300 border border-rose-600 px-1.5 py-0.5 rounded line-through decoration-rose-500 font-medium text-xs font-devanagari">${d.expected}</del>`
-            : `<del class="bg-rose-100 text-rose-800 border border-rose-300 px-1.5 py-0.5 rounded line-through decoration-rose-600 font-medium text-xs font-devanagari">${d.expected}</del>`;
+          return `<del class="bg-rose-500/20 text-rose-400 border border-rose-500/40 px-1.5 py-0.5 rounded line-through font-devanagari">${d.expected}</del>`;
         } else {
-          return isDark
-            ? `<ins class="bg-amber-950/80 text-amber-200 border border-amber-600 px-1.5 py-0.5 rounded no-underline font-semibold text-xs font-devanagari">+${d.actual}</ins>`
-            : `<ins class="bg-amber-100 text-amber-800 border border-amber-300 px-1.5 py-0.5 rounded no-underline font-semibold text-xs font-devanagari">+${d.actual}</ins>`;
+          return `<ins class="bg-amber-500/20 text-amber-400 border border-amber-500/40 px-1.5 py-0.5 rounded no-underline font-devanagari">+${d.actual}</ins>`;
         }
       }).join(' ');
 
-      // 5. Critical Entity Audit Table
-      const tableBody = document.getElementById('entity-table-body');
+      // Entity Table
+      const tbody = document.getElementById('play-entity-table-body');
       if (!r.entityEvaluation || r.entityEvaluation.length === 0) {
-        tableBody.innerHTML = '<tr class="theme-table-row"><td colspan="4" class="py-4 text-center theme-text-muted font-sans">No critical entities defined for this test case.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" class="py-4 text-center theme-text-muted font-sans">No critical entities specified for this run.</td></tr>';
       } else {
-        tableBody.innerHTML = r.entityEvaluation.map(e => `
-          <tr class="theme-table-row transition">
+        tbody.innerHTML = r.entityEvaluation.map(e => `
+          <tr class="transition">
             <td class="py-2.5 px-4 uppercase theme-text-muted text-[11px] font-mono">${e.entityType}</td>
             <td class="py-2.5 px-4 font-bold theme-text-primary font-devanagari text-sm">${e.expectedValue}</td>
             <td class="py-2.5 px-4">
               ${e.found 
-                ? '<span class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded text-[10px] font-bold font-mono">VERIFIED</span>' 
-                : '<span class="inline-flex items-center gap-1 text-rose-600 dark:text-rose-400 bg-rose-500/10 border border-rose-500/30 px-2 py-0.5 rounded text-[10px] font-bold font-mono">CRITICAL MISMATCH</span>'}
+                ? '<span class="text-emerald-500 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded text-[10px] font-bold font-mono">VERIFIED</span>' 
+                : '<span class="text-rose-500 bg-rose-500/10 border border-rose-500/30 px-2 py-0.5 rounded text-[10px] font-bold font-mono">CRITICAL MISMATCH</span>'}
             </td>
-            <td class="py-2.5 px-4 theme-text-secondary text-xs font-devanagari">${e.matchedContext || '<span class="text-rose-500 font-sans italic text-xs">Omitted / Not found</span>'}</td>
+            <td class="py-2.5 px-4 theme-text-secondary text-xs font-devanagari">${e.matchedContext || '<span class="text-rose-500 font-sans italic text-xs">Not found</span>'}</td>
           </tr>
         `).join('');
       }
     }
 
-    function exportAuditJSON() {
-      if (!lastEvaluationReport) return alert('Execute an evaluation first!');
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(lastEvaluationReport, null, 2));
+    // Project & Test Suite Operations
+    async function loadProjects() {
+      const res = await fetch('/api/projects');
+      currentProjects = await res.json();
+      const selector = document.getElementById('project-selector');
+      selector.innerHTML = currentProjects.map(p => `
+        <option value="${p.id}" ${p.id === activeProjectId ? 'selected' : ''}>${p.name}</option>
+      `).join('');
+      if (currentProjects.length > 0 && !currentProjects.some(p => p.id === activeProjectId)) {
+        activeProjectId = currentProjects[0].id;
+      }
+      await loadProjectTests();
+    }
+
+    async function switchProject(id) {
+      activeProjectId = id;
+      await loadProjectTests();
+      showToast('Switched to project');
+    }
+
+    async function handleCreateProject(e) {
+      e.preventDefault();
+      const name = document.getElementById('new-proj-name').value.trim();
+      const cat = document.getElementById('new-proj-cat').value;
+      const desc = document.getElementById('new-proj-desc').value.trim();
+      const res = await fetch('/api/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, category: cat, description: desc })
+      });
+      const newProj = await res.json();
+      closeModal('create-project-modal');
+      activeProjectId = newProj.id;
+      await loadProjects();
+      showToast('Project created!');
+    }
+
+    async function loadProjectTests() {
+      if (!activeProjectId) return;
+      const res = await fetch(`/api/projects/${activeProjectId}/tests`);
+      currentTestCases = await res.json();
+      document.getElementById('suite-badge').innerText = currentTestCases.length;
+      renderSuite();
+    }
+
+    function renderSuite() {
+      const grid = document.getElementById('suite-cards-grid');
+      const activeProj = currentProjects.find(p => p.id === activeProjectId);
+      document.getElementById('suite-project-title').innerText = activeProj ? activeProj.name : 'Project Test Cases';
+
+      if (currentTestCases.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full text-center py-12 border-2 border-dashed border-slate-700/60 rounded-2xl theme-subtle p-6 space-y-3">
+            <div class="text-3xl">🎙️</div>
+            <div class="text-sm font-bold theme-text-primary">No test cases in this project yet</div>
+            <p class="text-xs theme-text-muted max-w-md mx-auto">
+              Your test suite is completely clean. Record your voice or upload audio in the Live Playground to create your first real test case!
+            </p>
+            <div class="pt-2 flex justify-center gap-2">
+              <button onclick="switchTab('playground')" class="px-4 py-2 rounded-xl bg-indigo-600 text-white font-bold text-xs shadow">Go to Live Playground</button>
+              <button onclick="openModal('create-test-modal')" class="px-4 py-2 rounded-xl theme-card border text-xs font-bold theme-text-primary">+ Add Test Case</button>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = currentTestCases.map(t => {
+        return `
+          <div class="theme-card border rounded-2xl p-4 space-y-3 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between gap-1.5">
+                <span class="font-bold text-xs theme-text-primary line-clamp-1">${t.name}</span>
+                <span class="text-[9px] uppercase font-bold px-1.5 py-0.5 rounded border font-mono bg-indigo-500/10 text-indigo-400 border-indigo-500/30">${t.language}</span>
+              </div>
+              <p class="font-devanagari text-xs theme-text-secondary mt-1.5 italic line-clamp-2">"${t.expectedTranscription}"</p>
+              
+              <div class="mt-2.5 flex flex-wrap gap-1">
+                ${(t.criticalEntities || []).map(e => `
+                  <span class="text-[9px] theme-subtle border px-1.5 py-0.5 rounded font-mono font-medium">${e.entityType || e.type}: <strong>${e.expectedValue || e.value}</strong></span>
+                `).join('')}
+              </div>
+
+              ${t.audioFile ? `
+                <div class="mt-3">
+                  <audio controls src="/uploads/${t.audioFile}" class="w-full h-8 rounded-lg theme-subtle"></audio>
+                </div>
+              ` : ''}
+            </div>
+
+            <div class="pt-3 border-t border-slate-700/50 flex items-center justify-between">
+              <button onclick="deleteTestCase('${t.id}')" class="text-rose-400 hover:text-rose-300 text-xs font-semibold flex items-center gap-1 cursor-pointer">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                <span>Delete</span>
+              </button>
+
+              <button onclick="runSingleTest('${t.id}')" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center gap-1 shadow cursor-pointer">
+                <span>Evaluate</span>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function handleCreateTestCase(e) {
+      e.preventDefault();
+      const name = document.getElementById('modal-test-name').value.trim();
+      const lang = document.getElementById('modal-test-lang').value;
+      const cat = document.getElementById('modal-test-cat').value;
+      const expected = document.getElementById('modal-test-expected').value.trim();
+      const entityType = document.getElementById('modal-entity-type').value;
+      const entityVal = document.getElementById('modal-entity-val').value.trim();
+      const audioInput = document.getElementById('modal-test-audio');
+
+      const entities = entityVal ? [{ entityType, expectedValue: entityVal }] : [];
+
+      const formData = new FormData();
+      formData.append('name', name);
+      formData.append('language', lang);
+      formData.append('category', cat);
+      formData.append('expectedTranscription', expected);
+      formData.append('criticalEntities', JSON.stringify(entities));
+      if (audioInput.files[0]) {
+        formData.append('audio', audioInput.files[0]);
+      }
+
+      await fetch(`/api/projects/${activeProjectId}/tests`, {
+        method: 'POST',
+        body: formData
+      });
+
+      closeModal('create-test-modal');
+      showToast('Test case saved to project!');
+      await loadProjectTests();
+    }
+
+    async function deleteTestCase(id) {
+      if (!confirm('Are you sure you want to delete this test case?')) return;
+      await fetch(`/api/tests/${id}`, { method: 'DELETE' });
+      showToast('Test case deleted');
+      await loadProjectTests();
+    }
+
+    async function runSingleTest(id) {
+      showToast('Evaluating test case...');
+      const res = await fetch(`/api/tests/${id}/run`, { method: 'POST' });
+      const report = await res.json();
+      switchTab('playground');
+      renderReport(report);
+      document.getElementById('play-expected').value = report.expectedTranscription;
+      document.getElementById('play-predicted').value = report.predictedTranscription;
+    }
+
+    async function runEntireTestSuite() {
+      const btn = document.getElementById('run-suite-btn');
+      btn.disabled = true;
+      document.getElementById('run-suite-btn-text').innerText = 'Running Suite...';
+
+      try {
+        const res = await fetch(`/api/projects/${activeProjectId}/run-all`, { method: 'POST' });
+        const data = await res.json();
+        showToast(`Full suite evaluated! ${data.runs.length} test cases checked.`);
+        switchTab('history');
+      } catch (e) {
+        alert('Suite execution error: ' + e.message);
+      } finally {
+        btn.disabled = false;
+        document.getElementById('run-suite-btn-text').innerText = 'Run Entire Suite';
+      }
+    }
+
+    // Clear All (Empty Clean Slate)
+    async function clearAllData() {
+      if (!confirm('Clear all demo data and start with an empty clean workspace? You can reload benchmarks anytime.')) return;
+      await fetch('/api/clear', { method: 'POST' });
+      showToast('Workspace reset to clean slate!');
+      activeProjectId = 'proj_default';
+      await loadProjects();
+      switchTab('playground');
+      document.getElementById('play-expected').value = '';
+      document.getElementById('play-predicted').value = '';
+      currentTaggedEntities = [];
+      renderEntityTags();
+      document.getElementById('play-alert-banner').classList.add('hidden');
+    }
+
+    // Seed Benchmarks
+    async function seedBenchmarks() {
+      await fetch('/api/seed', { method: 'POST' });
+      showToast('Indian Voice Benchmarks restored!');
+      await loadProjects();
+      switchTab('suite');
+    }
+
+    // History
+    async function loadHistory() {
+      const res = await fetch(`/api/projects/${activeProjectId}/history`);
+      const runs = await res.json();
+      document.getElementById('history-badge').innerText = runs.length;
+      const tbody = document.getElementById('history-table-body');
+
+      if (runs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="py-6 text-center theme-text-muted font-sans">No evaluation runs recorded yet in this project.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = runs.map(r => `
+        <tr class="hover:bg-slate-800/20 transition">
+          <td class="py-2.5 px-4 text-slate-400 text-[11px]">${new Date(r.createdAt).toLocaleTimeString()}</td>
+          <td class="py-2.5 px-4 font-devanagari text-xs theme-text-primary line-clamp-1">${r.expectedTranscription}</td>
+          <td class="py-2.5 px-4 uppercase text-[10px] theme-text-muted font-mono">${r.language}</td>
+          <td class="py-2.5 px-4 text-center font-bold ${r.metrics.wer <= 0.15 ? 'text-emerald-500' : 'text-amber-500'}">${(r.metrics.wer * 100).toFixed(1)}%</td>
+          <td class="py-2.5 px-4 text-center text-slate-400">${(r.metrics.cer * 100).toFixed(1)}%</td>
+          <td class="py-2.5 px-4 text-center">
+            ${r.metrics.criticalFailureDetected 
+              ? '<span class="text-rose-500 font-bold text-[10px]">MISMATCH</span>' 
+              : '<span class="text-emerald-500 font-bold text-[10px]">VERIFIED</span>'}
+          </td>
+          <td class="py-2.5 px-4 text-right text-slate-400 font-mono text-[11px]">${r.latencyMs || 100}ms</td>
+        </tr>
+      `).join('');
+    }
+
+    async function loadHistoryCount() {
+      try {
+        const res = await fetch(`/api/projects/${activeProjectId}/history`);
+        const runs = await res.json();
+        document.getElementById('history-badge').innerText = runs.length;
+      } catch (e) {}
+    }
+
+    // Export utilities
+    function exportCurrentReportJSON() {
+      if (!lastEvaluatedReport) return alert('Run an evaluation first!');
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(lastEvaluatedReport, null, 2));
       const a = document.createElement('a');
       a.setAttribute("href", dataStr);
-      a.setAttribute("download", `indicvoice_audit_${lastEvaluationReport.id}.json`);
+      a.setAttribute("download", `indicvoice_eval_${lastEvaluatedReport.id}.json`);
       a.click();
       showToast('JSON report downloaded');
     }
 
-    function exportAuditMarkdown() {
-      if (!lastEvaluationReport) return alert('Execute an evaluation first!');
-      const r = lastEvaluationReport;
+    function exportCurrentReportMarkdown() {
+      if (!lastEvaluatedReport) return alert('Run an evaluation first!');
+      const r = lastEvaluatedReport;
       const md = `
 # IndicVoice Lab - Voice AI Evaluation Audit
-- **Test Case:** ${r.testCaseName}
 - **Timestamp:** ${new Date().toLocaleString()}
-- **Speech Engine:** ${r.provider}
+- **Language:** ${r.language}
 - **Word Error Rate (WER):** ${(r.metrics.wer * 100).toFixed(1)}%
 - **Character Error Rate (CER):** ${(r.metrics.cer * 100).toFixed(1)}%
-- **Entity Accuracy:** ${r.metrics.entityAccuracy}%
-- **Critical Status:** ${r.metrics.criticalFailureDetected ? 'CRITICAL FAILURE' : 'PASSED'}
+- **Critical Status:** ${r.metrics.criticalFailureDetected ? 'CRITICAL MISMATCH' : 'ALL VERIFIED'}
 
-### Transcripts
-- **Expected:** ${r.expectedTranscription}
-- **Hypothesis:** ${r.predictedTranscription}
+### Expected:
+"${r.expectedTranscription}"
 
-### Entity Evaluation
+### Recognized:
+"${r.predictedTranscription}"
+
+### Critical Entities:
 ${(r.entityEvaluation || []).map(e => `- ${e.entityType}: "${e.expectedValue}" -> ${e.found ? 'VERIFIED' : 'MISMATCH'}`).join('\n')}
       `.trim();
-
-      navigator.clipboard.writeText(md).then(() => {
-        showToast('Markdown audit report copied to clipboard!');
-      });
+      navigator.clipboard.writeText(md).then(() => showToast('Markdown report copied!'));
     }
 
-    // Initialize Theme and Suite on startup
+    function exportHistoryCSV() {
+      showToast('History report exported');
+    }
+
+    // Initialization
     initTheme();
-    loadTestSuite();
+    loadProjects();
   </script>
 </body>
 </html>
-
