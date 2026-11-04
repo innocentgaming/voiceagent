@@ -64,7 +64,7 @@ export default function EvaluationModal({ run, onClose }) {
 
 ---
 ### Critical Entities
-${(entityEvaluation?.evaluatedEntities || []).map(e => `- ${e.name} (${e.type}): Expected "${e.expectedValue}" -> ${e.matched ? 'PASSED' : 'FAILED'}`).join('\n')}
+${(entityEvaluation?.evaluatedEntities || []).map(e => `- ${e.name} (${e.type}): Expected "${e.expectedValue}" -> ${e.status || (e.matched ? 'PASS' : 'CRITICAL_MISMATCH')} (Score: ${Math.round((e.score || (e.matched ? 1 : 0)) * 100)}%)`).join('\n')}
     `.trim();
 
     const dataStr = "data:text/markdown;charset=utf-8," + encodeURIComponent(md);
@@ -340,14 +340,19 @@ ${(entityEvaluation?.evaluatedEntities || []).map(e => `- ${e.name} (${e.type}):
                       <td className="py-2.5 px-3 uppercase text-[10px] text-slate-400 font-mono">{ent.type}</td>
                       <td className="py-2.5 px-3 font-mono text-white font-medium">{ent.expectedValue}</td>
                       <td className="py-2.5 px-3 text-right">
-                        {ent.matched ? (
-                          <span className="inline-flex items-center gap-1 text-emerald-400 font-bold">
-                            <CheckCircle2 className="w-4 h-4" />
-                            PASSED
+                        {ent.status === 'PASS' || ent.matched ? (
+                          <span className="inline-flex items-center gap-1 text-emerald-400 font-bold px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            PASS
+                          </span>
+                        ) : ent.status === 'NEAR_MISS' || ent.nearMiss ? (
+                          <span className="inline-flex items-center gap-1 text-amber-400 font-bold px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/20" title={`Similarity: ${Math.round((ent.score || 0.65) * 100)}% (Phonetic/Spelling variance)`}>
+                            <AlertTriangle className="w-3.5 h-3.5" />
+                            NEAR MISS ({Math.round((ent.score || 0.65) * 100)}%)
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 text-red-400 font-bold">
-                            <XCircle className="w-4 h-4" />
+                          <span className="inline-flex items-center gap-1 text-rose-400 font-bold px-2 py-0.5 rounded bg-rose-500/10 border border-rose-500/20">
+                            <XCircle className="w-3.5 h-3.5" />
                             CRITICAL MISMATCH
                           </span>
                         )}

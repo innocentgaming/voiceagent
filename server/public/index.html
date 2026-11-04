@@ -1183,11 +1183,13 @@
             <td class="py-2.5 px-4 uppercase text-slate-400 text-[11px] font-mono">${e.entityType}</td>
             <td class="py-2.5 px-4 font-bold font-devanagari text-sm">${e.expectedValue}</td>
             <td class="py-2.5 px-4">
-              ${e.found 
-                ? '<span class="text-emerald-500 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-full text-[10px] font-bold font-mono">VERIFIED</span>' 
-                : '<span class="text-rose-500 bg-rose-500/10 border border-rose-500/30 px-2 py-0.5 rounded-full text-[10px] font-bold font-mono">MISMATCH</span>'}
+              ${e.status === 'PASS' || (e.found && !e.nearMiss)
+                ? '<span class="text-emerald-500 bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-0.5 rounded-full text-[10px] font-bold font-mono">PASS</span>' 
+                : (e.status === 'NEAR_MISS' || e.nearMiss)
+                  ? `<span class="text-amber-500 bg-amber-500/10 border border-amber-500/30 px-2.5 py-0.5 rounded-full text-[10px] font-bold font-mono" title="Phonetic / accent variance">NEAR MISS (${Math.round((e.score || 0.65) * 100)}%)</span>`
+                  : '<span class="text-rose-500 bg-rose-500/10 border border-rose-500/30 px-2.5 py-0.5 rounded-full text-[10px] font-bold font-mono">CRITICAL MISMATCH</span>'}
             </td>
-            <td class="py-2.5 px-4 text-slate-400 text-xs font-devanagari">${e.matchedContext || '<span class="text-rose-500 italic">Not found</span>'}</td>
+            <td class="py-2.5 px-4 text-slate-400 text-xs font-devanagari">${e.status === 'NEAR_MISS' ? '<span class="text-amber-500">Phonetic variance detected</span>' : (e.matchedContext || (e.found ? e.expectedValue : '<span class="text-rose-500 italic">Omitted or altered</span>'))}</td>
           </tr>
         `).join('');
       }
