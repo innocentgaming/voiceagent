@@ -1,5 +1,6 @@
 const assert = require('assert');
 require('./numberNormalizer.test');
+require('./advancedMetrics.test');
 const {
   normalizeIndicText,
   getGraphemeClusters,

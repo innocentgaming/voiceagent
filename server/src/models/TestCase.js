@@ -10,6 +10,10 @@ const testCaseSchema = new mongoose.Schema({
     default: 'general',
     index: true
   },
+  accent: { type: String, default: 'Standard' },
+  region: { type: String, default: 'North' },
+  cmi: { type: Number, default: 0 },
+  snrLevel: { type: String, default: 'clean' },
   audioFile: {
     originalName: String,
     mimeType: String,

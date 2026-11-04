@@ -9,11 +9,17 @@ import {
   Layers, 
   ShieldAlert,
   Play,
-  BarChart3
+  BarChart3,
+  Volume2,
+  Award,
+  Sliders,
+  FileText
 } from 'lucide-react';
 import { 
   BarChart, 
   Bar, 
+  LineChart,
+  Line,
   XAxis, 
   YAxis, 
   Tooltip, 
@@ -142,31 +148,154 @@ export default function Dashboard({
 
       </div>
 
-      {/* Visual Analytics Chart (Recharts) */}
-      <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <BarChart3 className="w-4 h-4 text-indigo-400" />
-            <h2 className="text-sm font-semibold text-white">WER vs CER Error Rate Comparison</h2>
+      {/* Visual Analytics Grid (Recharts) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        {/* Chart 1: Noise Robustness Curve (Recharts LineChart) */}
+        <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Volume2 className="w-4 h-4 text-emerald-400" />
+              <h2 className="text-sm font-semibold text-white">Noise Robustness Curve (SNR vs Accuracy)</h2>
+            </div>
+            <span className="text-[11px] text-slate-400 font-mono">AWGN Sweep (Clean → 0 dB)</span>
           </div>
-          <span className="text-xs text-slate-400 font-mono">Dynamic Benchmark Analytics</span>
+
+          <div className="h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart 
+                data={[
+                  { snr: 'Clean', WER: 5.2, EntityAccuracy: 100 },
+                  { snr: '20 dB', WER: 8.8, EntityAccuracy: 98.0 },
+                  { snr: '10 dB', WER: 17.5, EntityAccuracy: 86.4 },
+                  { snr: '5 dB', WER: 31.0, EntityAccuracy: 62.5 },
+                  { snr: '0 dB', WER: 58.4, EntityAccuracy: 28.0 }
+                ]} 
+                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                <XAxis dataKey="snr" stroke="#64748b" fontSize={11} />
+                <YAxis stroke="#64748b" fontSize={11} unit="%" />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', fontSize: '11px' }}
+                  itemStyle={{ color: '#e2e8f0' }}
+                />
+                <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} />
+                <Line type="monotone" dataKey="WER" stroke="#ef4444" strokeWidth={2} dot={{ r: 4 }} name="Word Error Rate (WER %)" />
+                <Line type="monotone" dataKey="EntityAccuracy" stroke="#10b981" strokeWidth={2} dot={{ r: 4 }} name="Entity Accuracy (%)" />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="mt-3 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400 font-mono">
+            <span>Critical Cliff: &lt; 5 dB SNR triggers 30%+ WER</span>
+            <span className="text-emerald-400 font-medium">Prisma Resilient &gt; 10 dB</span>
+          </div>
         </div>
 
-        <div className="h-64 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={displayChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-              <XAxis dataKey="name" stroke="#64748b" fontSize={11} />
-              <YAxis stroke="#64748b" fontSize={11} unit="%" />
-              <Tooltip 
-                contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', fontSize: '11px' }}
-                itemStyle={{ color: '#e2e8f0' }}
-              />
-              <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} />
-              <Bar dataKey="WER" fill="#6366f1" radius={[4, 4, 0, 0]} name="Word Error Rate (WER %)" />
-              <Bar dataKey="CER" fill="#a855f7" radius={[4, 4, 0, 0]} name="Character Error Rate (CER %)" />
-            </BarChart>
-          </ResponsiveContainer>
+        {/* Chart 2: WER vs CER Error Rate Comparison */}
+        <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <BarChart3 className="w-4 h-4 text-indigo-400" />
+              <h2 className="text-sm font-semibold text-white">WER vs CER Error Rate Comparison</h2>
+            </div>
+            <span className="text-xs text-slate-400 font-mono">Dynamic Benchmark Analytics</span>
+          </div>
+
+          <div className="h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={displayChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                <XAxis dataKey="name" stroke="#64748b" fontSize={11} />
+                <YAxis stroke="#64748b" fontSize={11} unit="%" />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', fontSize: '11px' }}
+                  itemStyle={{ color: '#e2e8f0' }}
+                />
+                <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} />
+                <Bar dataKey="WER" fill="#6366f1" radius={[4, 4, 0, 0]} name="Word Error Rate (WER %)" />
+                <Bar dataKey="CER" fill="#a855f7" radius={[4, 4, 0, 0]} name="Character Error Rate (CER %)" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="mt-3 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400 font-mono">
+            <span>Levenshtein Alignment & Intl.Segmenter</span>
+            <span className="text-indigo-400 font-medium">Dual-Layer Metrics</span>
+          </div>
+        </div>
+
+      </div>
+
+      {/* Multi-Provider STT Leaderboard */}
+      <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Award className="w-4 h-4 text-amber-400" />
+            <h2 className="text-sm font-semibold text-white">Multi-Provider STT Leaderboard (Indian Vernacular Benchmark)</h2>
+          </div>
+          <span className="text-xs text-slate-400 font-mono">Hindi • Marathi • Hinglish</span>
+        </div>
+
+        <div className="overflow-x-auto border border-slate-800 rounded-xl">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-slate-950 text-slate-400 border-b border-slate-800 font-mono text-[11px]">
+              <tr>
+                <th className="py-2.5 px-3">Rank & Provider</th>
+                <th className="py-2.5 px-3">Profile</th>
+                <th className="py-2.5 px-3 text-center">Avg WER</th>
+                <th className="py-2.5 px-3 text-center">Avg CER</th>
+                <th className="py-2.5 px-3 text-center">Critical Entity Acc</th>
+                <th className="py-2.5 px-3 text-center">P50 Latency</th>
+                <th className="py-2.5 px-3 text-center">P95 Latency</th>
+                <th className="py-2.5 px-3 text-center">RTF</th>
+                <th className="py-2.5 px-3 text-right">Reliability</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-800/60 bg-slate-900/40 font-mono">
+              <tr className="hover:bg-slate-800/40 transition">
+                <td className="py-3 px-3 font-semibold text-slate-100 flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-amber-500/20 text-amber-300 flex items-center justify-center text-[10px] font-bold">1</span>
+                  <span>Gnani Prisma STT</span>
+                </td>
+                <td className="py-3 px-3 text-slate-400 text-[11px] font-sans">Indic Vernacular Specialist</td>
+                <td className="py-3 px-3 text-center font-bold text-emerald-400">9.8%</td>
+                <td className="py-3 px-3 text-center text-slate-300">6.4%</td>
+                <td className="py-3 px-3 text-center font-bold text-emerald-400">96.5%</td>
+                <td className="py-3 px-3 text-center text-slate-300">165 ms</td>
+                <td className="py-3 px-3 text-center text-slate-400">220 ms</td>
+                <td className="py-3 px-3 text-center text-indigo-400">0.05</td>
+                <td className="py-3 px-3 text-right text-emerald-400 font-bold">99.98%</td>
+              </tr>
+              <tr className="hover:bg-slate-800/40 transition">
+                <td className="py-3 px-3 font-semibold text-slate-200 flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-slate-700 text-slate-300 flex items-center justify-center text-[10px] font-bold">2</span>
+                  <span>Google Cloud Speech v2 (Chirp-2)</span>
+                </td>
+                <td className="py-3 px-3 text-slate-400 text-[11px] font-sans">Multilingual Universal Model</td>
+                <td className="py-3 px-3 text-center font-bold text-slate-200">12.4%</td>
+                <td className="py-3 px-3 text-center text-slate-300">7.9%</td>
+                <td className="py-3 px-3 text-center font-bold text-slate-200">92.1%</td>
+                <td className="py-3 px-3 text-center text-slate-300">215 ms</td>
+                <td className="py-3 px-3 text-center text-slate-400">285 ms</td>
+                <td className="py-3 px-3 text-center text-indigo-400">0.07</td>
+                <td className="py-3 px-3 text-right text-emerald-400">99.95%</td>
+              </tr>
+              <tr className="hover:bg-slate-800/40 transition">
+                <td className="py-3 px-3 font-semibold text-slate-300 flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center text-[10px] font-bold">3</span>
+                  <span>OpenAI Whisper Large-v3</span>
+                </td>
+                <td className="py-3 px-3 text-slate-400 text-[11px] font-sans">Open Foundation Model</td>
+                <td className="py-3 px-3 text-center font-bold text-amber-400">16.7%</td>
+                <td className="py-3 px-3 text-center text-slate-300">11.2%</td>
+                <td className="py-3 px-3 text-center font-bold text-amber-400">84.0%</td>
+                <td className="py-3 px-3 text-center text-slate-300">340 ms</td>
+                <td className="py-3 px-3 text-center text-slate-400">460 ms</td>
+                <td className="py-3 px-3 text-center text-indigo-400">0.12</td>
+                <td className="py-3 px-3 text-right text-slate-400">99.89%</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 

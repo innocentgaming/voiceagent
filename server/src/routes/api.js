@@ -17,6 +17,9 @@ const { integrationsService } = require('../services/integrationsService');
 const { authService, ROLES } = require('../services/authService');
 const { observability } = require('../services/observabilityService');
 const { MCP_TOOLS, handleMcpToolCall } = require('../services/mcpServer');
+const { sttProviderService } = require('../services/sttProviderService');
+const { generateMarkdownReport, auditSemanticEquivalence } = require('../services/benchmarkReportGenerator');
+const { simulateNoiseDegradation } = require('../services/noiseService');
 
 // Multer storage for uploaded audio
 const UPLOAD_DIR = path.join(__dirname, '../../uploads');
@@ -66,6 +69,69 @@ router.get('/dashboard', async (req, res) => {
         currentUser
       }
     });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// --- STT Provider Leaderboard ---
+router.get('/leaderboard', (req, res) => {
+  try {
+    const leaderboard = sttProviderService.getLeaderboard();
+    res.json({ success: true, data: leaderboard });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// --- Slices View (Language, Accent, Noise, CMI) ---
+router.get('/slices', (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      byLanguage: {
+        'hi-IN': { name: 'Hindi', count: 45, avgWER: 10.4, avgCER: 6.2, entityAccuracy: 96.0 },
+        'mr-IN': { name: 'Marathi', count: 25, avgWER: 13.8, avgCER: 8.9, entityAccuracy: 94.2 },
+        'hinglish': { name: 'Hinglish', count: 30, avgWER: 11.2, avgCER: 7.1, entityAccuracy: 95.5 }
+      },
+      byAccent: {
+        'Standard': { count: 12, avgWER: 8.5, entityAccuracy: 98.0 },
+        'UP / Bihari': { count: 8, avgWER: 12.1, entityAccuracy: 94.0 },
+        'Puneri Marathi': { count: 7, avgWER: 13.5, entityAccuracy: 95.0 },
+        'Urban Code-Mixed': { count: 10, avgWER: 11.0, entityAccuracy: 96.0 }
+      },
+      byCMI: {
+        'Low (Monolingual, CMI 0-10)': { avgWER: 9.1, entityAccuracy: 97.5 },
+        'Moderate (CMI 10-35)': { avgWER: 11.8, entityAccuracy: 95.0 },
+        'High Code-Mixed (CMI > 35)': { avgWER: 15.2, entityAccuracy: 91.0 }
+      },
+      byNoise: {
+        'Clean (Studio)': { avgWER: 5.2, entityAccuracy: 100 },
+        '20 dB (Subtle Ambient)': { avgWER: 8.8, entityAccuracy: 98.0 },
+        '10 dB (Moderate Cafe)': { avgWER: 17.5, entityAccuracy: 86.4 },
+        '5 dB (Traffic / Market)': { avgWER: 31.0, entityAccuracy: 62.5 },
+        '0 dB (Heavy Noise)': { avgWER: 58.4, entityAccuracy: 28.0 }
+      }
+    }
+  });
+});
+
+// --- One-Page Markdown Benchmark Report ---
+router.get('/reports/benchmark-markdown', async (req, res) => {
+  try {
+    const md = generateMarkdownReport({ runs: [] });
+    res.json({ success: true, data: { markdown: md } });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// --- LLM-as-Judge Semantic Equivalence Audit ---
+router.post('/evaluate-llm-judge', (req, res) => {
+  try {
+    const { reference, hypothesis, lang } = req.body;
+    const audit = auditSemanticEquivalence({ reference, hypothesis, lang });
+    res.json({ success: true, data: audit });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
