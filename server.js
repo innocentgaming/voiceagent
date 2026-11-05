@@ -977,11 +977,20 @@ app.get('/api/projects/:id/history', (req, res) => {
 });
 
 // ==========================================
-// 5. SERVE FRONTEND UI
+// 5. SERVE FRONTEND UI (React SaaS App & Studio)
 // ==========================================
+const clientDist = path.join(__dirname, 'client/dist');
+if (fs.existsSync(clientDist)) {
+  app.use('/app', express.static(clientDist));
+  app.get('/app*', (req, res) => {
+    res.sendFile(path.join(clientDist, 'index.html'));
+  });
+}
+
 app.use(express.static(path.join(__dirname, 'server/public')));
 
 app.get('/', (req, res) => {
+  // If React client is built, offer instant access or default to public studio
   res.sendFile(path.join(__dirname, 'server/public/index.html'));
 });
 
