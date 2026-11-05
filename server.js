@@ -337,6 +337,20 @@ const prismaService = new PrismaService();
 // 4. REST API ROUTES
 // ==========================================
 
+// Health & System Telemetry Endpoint
+app.get('/api/health', (req, res) => {
+  const db = loadDb();
+  res.json({
+    status: 'ok',
+    service: 'IndicVoice Lab Speech AI Evaluation Engine',
+    uptime: Math.round(process.uptime()),
+    timestamp: new Date().toISOString(),
+    memoryUsageMB: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
+    activeProjects: (db.projects || []).length,
+    activeRuns: (db.runs || []).length
+  });
+});
+
 // --- Authentication & User Identity ---
 app.post('/api/auth/signup', (req, res) => {
   const { name, email, password, role = 'Lead Voice AI Researcher' } = req.body;
@@ -552,6 +566,8 @@ app.post('/api/evaluate-direct', upload.single('audio'), async (req, res) => {
   const { 
     expectedTranscription, 
     predictedTranscription, 
+    hypothesis,
+    predictedText,
     language = 'hi-IN', 
     criticalEntities = '[]',
     projectId = 'proj_default'
@@ -578,7 +594,7 @@ app.post('/api/evaluate-direct', upload.single('audio'), async (req, res) => {
     } catch (e) {}
   }
 
-  let predicted = predictedTranscription;
+  let predicted = predictedTranscription || hypothesis || predictedText;
   let provider = 'Gnani Prisma STT (Live Vachana v3)';
   let confidence = 0.95;
   let isSimulated = false;
@@ -661,7 +677,7 @@ app.post('/api/auto-ner', (req, res) => {
 
 // Model Comparison Arena (Gnani Prisma vs Google Cloud STT vs Whisper)
 app.post('/api/evaluate-multi', upload.single('audio'), async (req, res) => {
-  const { expectedTranscription, predictedTranscription, language = 'hi-IN', criticalEntities = '[]' } = req.body;
+  const { expectedTranscription, predictedTranscription, hypothesis, language = 'hi-IN', criticalEntities = '[]' } = req.body;
   if (!expectedTranscription) return res.status(400).json({ error: 'Expected transcription required' });
 
   let parsedEntities = [];
@@ -673,7 +689,7 @@ app.post('/api/evaluate-multi', upload.single('audio'), async (req, res) => {
 
   const result = await sttProviderService.benchmarkAll({
     reference: expectedTranscription,
-    hypothesis: predictedTranscription,
+    hypothesis: predictedTranscription || hypothesis,
     language,
     criticalEntities: parsedEntities
   });
@@ -746,7 +762,7 @@ app.post('/api/evaluate-noise', upload.single('audio'), async (req, res) => {
 
 // Indian Voice Stress Lab (Clean, AWGN Noise, Low Volume, Clipping Distortion)
 app.post('/api/stress-lab/run', upload.single('audio'), async (req, res) => {
-  const { expectedTranscription, predictedTranscription, language = 'hi-IN', criticalEntities = '[]' } = req.body;
+  const { expectedTranscription, predictedTranscription, hypothesis, language = 'hi-IN', criticalEntities = '[]' } = req.body;
   if (!expectedTranscription) return res.status(400).json({ error: 'Expected reference text is required' });
 
   let parsedEntities = [];
@@ -758,7 +774,7 @@ app.post('/api/stress-lab/run', upload.single('audio'), async (req, res) => {
 
   const suiteResult = await stressLabService.runStressSuite({
     reference: expectedTranscription,
-    hypothesis: predictedTranscription,
+    hypothesis: predictedTranscription || hypothesis,
     language,
     criticalEntities: parsedEntities
   });

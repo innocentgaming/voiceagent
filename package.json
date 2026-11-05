@@ -9,6 +9,7 @@
     "client": "cd client && npm run dev",
     "build": "cd client && npm install && npm run build",
     "test": "cd server && npm test",
+    "test:stress300": "node server/tests/stress300Suite.js",
     "seed": "cd server && node scripts/seed.js",
     "test:gnani": "cd server && node scripts/testGnaniLive.js",
     "gen:audio": "cd server && node scripts/generateSampleWavs.js"
