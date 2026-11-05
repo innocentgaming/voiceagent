@@ -20,6 +20,18 @@ import { Activity, BarChart3, TrendingUp, Volume2, ShieldCheck } from 'lucide-re
 export default function AnalyticsCharts({ stats }) {
   const [activeChartTab, setActiveChartTab] = useState('robustness');
 
+  // Detect current theme mode for responsive SVG chart palettes
+  const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
+  const tooltipStyle = {
+    backgroundColor: isDark ? '#111622' : '#ffffff',
+    borderColor: isDark ? '#1e2638' : '#e2e8f0',
+    borderRadius: '8px',
+    color: isDark ? '#f1f5f9' : '#0f172a',
+    fontSize: '11px',
+    boxShadow: isDark ? '0 4px 12px rgba(0, 0, 0, 0.5)' : '0 4px 12px rgba(15, 23, 42, 0.08)'
+  };
+  const gridColor = isDark ? '#1e2638' : '#e2e8f0';
+
   // Prepare WER & CER Trends strictly from actual recorded runs in the database
   const runs = stats?.recentRuns || [];
   const werCerData = runs.slice(0, 8).map((r, i) => ({
@@ -114,18 +126,10 @@ export default function AnalyticsCharts({ stats }) {
                 <div className="h-72 w-full pt-2">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={noiseData} margin={{ top: 10, right: 20, left: -15, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e6e9ef" className="dark:opacity-20" />
-                      <XAxis dataKey="snr" stroke="#697386" fontSize={11} />
-                      <YAxis stroke="#697386" fontSize={11} unit="%" />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: '#111622',
-                          borderColor: '#1e2638',
-                          borderRadius: '8px',
-                          color: '#f1f5f9',
-                          fontSize: '11px'
-                        }}
-                      />
+                      <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+                      <XAxis dataKey="snr" stroke={isDark ? "#94a3b8" : "#64748b"} fontSize={11} />
+                      <YAxis stroke={isDark ? "#94a3b8" : "#64748b"} fontSize={11} unit="%" />
+                      <Tooltip contentStyle={tooltipStyle} />
                       <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
                       <Line
                         type="monotone"
@@ -169,18 +173,10 @@ export default function AnalyticsCharts({ stats }) {
                 <div className="h-72 w-full pt-2">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={languageData} margin={{ top: 10, right: 20, left: -15, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e6e9ef" className="dark:opacity-20" />
-                      <XAxis dataKey="language" stroke="#697386" fontSize={11} />
-                      <YAxis stroke="#697386" fontSize={11} unit="%" />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: '#111622',
-                          borderColor: '#1e2638',
-                          borderRadius: '8px',
-                          color: '#f1f5f9',
-                          fontSize: '11px'
-                        }}
-                      />
+                      <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+                      <XAxis dataKey="language" stroke={isDark ? "#94a3b8" : "#64748b"} fontSize={11} />
+                      <YAxis stroke={isDark ? "#94a3b8" : "#64748b"} fontSize={11} unit="%" />
+                      <Tooltip contentStyle={tooltipStyle} />
                       <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
                       <Bar dataKey="WER" name="WER (%)" fill="#3457d5" radius={[4, 4, 0, 0]} />
                       <Bar dataKey="CER" name="CER (%)" fill="#7c3aed" radius={[4, 4, 0, 0]} />
@@ -236,18 +232,10 @@ export default function AnalyticsCharts({ stats }) {
                             <stop offset="95%" stopColor="#7c3aed" stopOpacity={0} />
                           </linearGradient>
                         </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#e6e9ef" className="dark:opacity-20" />
-                        <XAxis dataKey="name" stroke="#697386" fontSize={11} />
-                        <YAxis stroke="#697386" fontSize={11} unit="%" />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: '#111622',
-                            borderColor: '#1e2638',
-                            borderRadius: '8px',
-                            color: '#f1f5f9',
-                            fontSize: '11px'
-                          }}
-                        />
+                        <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+                        <XAxis dataKey="name" stroke={isDark ? "#94a3b8" : "#64748b"} fontSize={11} />
+                        <YAxis stroke={isDark ? "#94a3b8" : "#64748b"} fontSize={11} unit="%" />
+                        <Tooltip contentStyle={tooltipStyle} />
                         <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
                         <Area
                           type="monotone"

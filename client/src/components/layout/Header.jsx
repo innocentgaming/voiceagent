@@ -179,18 +179,37 @@ export default function Header({
           )}
         </div>
 
-        {/* Theme Toggle Button */}
-        <button
-          onClick={onToggleTheme}
-          className="p-2 rounded-[9px] hover:bg-[#f2f4f8] dark:hover:bg-[#171d2b] text-[#697386] dark:text-[#94a3b8] transition cursor-pointer"
-          title={theme === 'dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
+        {/* Upgraded Day / Night Mode Segmented Switcher */}
+        <div
+          className="flex items-center p-0.5 rounded-[9px] bg-[#f0f2f7] dark:bg-[#0d121c] border border-[#e2e5eb] dark:border-[#1e2638] text-xs transition"
+          role="group"
+          aria-label="Theme Mode Selection"
         >
-          {theme === 'dark' ? (
-            <Sun className="w-4 h-4 text-amber-400" />
-          ) : (
-            <Moon className="w-4 h-4 text-[#3457d5]" />
-          )}
-        </button>
+          <button
+            onClick={() => theme !== 'light' && onToggleTheme()}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-[7px] text-[11px] font-bold transition-all duration-150 cursor-pointer ${
+              theme === 'light'
+                ? 'bg-white text-[#151923] shadow-xs'
+                : 'text-[#697386] hover:text-[#151923]'
+            }`}
+            title="Switch to Day Mode (Crisp High-Contrast Light)"
+          >
+            <Sun className={`w-3.5 h-3.5 ${theme === 'light' ? 'text-amber-500 fill-amber-500/20' : 'text-[#8c97a8]'}`} />
+            <span className="hidden sm:inline">Day</span>
+          </button>
+          <button
+            onClick={() => theme !== 'dark' && onToggleTheme()}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-[7px] text-[11px] font-bold transition-all duration-150 cursor-pointer ${
+              theme === 'dark'
+                ? 'bg-[#1a233b] text-[#6a87f5] shadow-xs'
+                : 'text-[#697386] hover:text-[#f1f5f9]'
+            }`}
+            title="Switch to Night Mode (Deep Navy Obsidian)"
+          >
+            <Moon className={`w-3.5 h-3.5 ${theme === 'dark' ? 'text-[#6a87f5] fill-[#6a87f5]/20' : 'text-[#8c97a8]'}`} />
+            <span className="hidden sm:inline">Night</span>
+          </button>
+        </div>
 
         {/* User Account / Profile Area */}
         <div className="relative">

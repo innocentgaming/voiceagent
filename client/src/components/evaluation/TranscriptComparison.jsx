@@ -67,11 +67,11 @@ export default function TranscriptComparison({
             alignment.map((token, i) => {
               const type = token.type; // 'match', 'substitution', 'insertion', 'deletion'
               const colorClasses = {
-                match: 'bg-white dark:bg-[#111622] text-[#151923] dark:text-[#f1f5f9] border-[#e6e9ef] dark:border-[#1e2638]',
-                substitution: 'bg-[#fdeeee] dark:bg-[#341111] text-[#d64545] border-[#d64545]/40 font-bold',
-                insertion: 'bg-[#fdf5ea] dark:bg-[#322008] text-[#d68a25] border-[#d68a25]/40 font-bold',
+                match: 'bg-[#e8f5ef] dark:bg-[#062d1f]/60 text-[#16865b] dark:text-[#34d399] border-[#16865b]/30 font-semibold',
+                substitution: 'bg-[#fdeeee] dark:bg-[#341111] text-[#d64545] dark:text-[#f87171] border-[#d64545]/40 font-bold',
+                insertion: 'bg-[#fdf5ea] dark:bg-[#322008] text-[#d68a25] dark:text-[#fbbf24] border-[#d68a25]/40 font-bold',
                 deletion: 'bg-[#f2f4f8] dark:bg-[#1a2234] text-[#8c97a8] line-through border-[#e6e9ef] dark:border-[#1e2638]'
-              }[type] || 'bg-white text-slate-800';
+              }[type] || 'bg-white text-[#151923]';
 
               return (
                 <span

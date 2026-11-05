@@ -203,21 +203,35 @@ export default function Sidebar({
             </button>
           )}
 
-          {/* Theme Switcher Button */}
+          {/* Upgraded Day / Night Mode Switcher */}
           <button
             onClick={onToggleTheme}
-            className={`w-full flex items-center gap-3 p-2 rounded-[9px] hover:bg-[#f2f4f8] dark:hover:bg-[#171d2b] text-[#697386] dark:text-[#94a3b8] text-xs font-semibold transition cursor-pointer
-              ${isCollapsed ? 'justify-center' : ''}
+            className={`w-full flex items-center justify-between p-2 rounded-[9px] border transition cursor-pointer text-xs font-semibold
+              ${
+                theme === 'light'
+                  ? 'bg-[#ebf0ff] border-[#3457d5]/30 text-[#3457d5]'
+                  : 'bg-[#0d121c] border-[#1e2638] text-[#94a3b8] hover:text-[#f1f5f9]'
+              }
+              ${isCollapsed ? 'justify-center p-2' : ''}
             `}
-            title={theme === 'dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
+            title={`Currently in ${theme === 'light' ? 'Day Mode' : 'Night Mode'} — Click to switch`}
           >
-            {theme === 'dark' ? (
-              <Sun className="w-4 h-4 text-amber-400" />
-            ) : (
-              <Moon className="w-4 h-4 text-[#3457d5]" />
-            )}
+            <div className="flex items-center gap-2.5">
+              {theme === 'light' ? (
+                <Sun className="w-4 h-4 text-amber-500 fill-amber-500/20 shrink-0" />
+              ) : (
+                <Moon className="w-4 h-4 text-[#6a87f5] fill-[#6a87f5]/20 shrink-0" />
+              )}
+              {!isCollapsed && (
+                <span>{theme === 'light' ? 'Day Mode' : 'Night Mode'}</span>
+              )}
+            </div>
             {!isCollapsed && (
-              <span>{theme === 'dark' ? 'Light Appearance' : 'Dark Appearance'}</span>
+              <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded font-bold uppercase ${
+                theme === 'light' ? 'bg-[#3457d5] text-white' : 'bg-[#1a233b] text-[#6a87f5]'
+              }`}>
+                {theme === 'light' ? 'Light' : 'Dark'}
+              </span>
             )}
           </button>
 
