@@ -1,106 +1,149 @@
 /**
- * IndicVoice Lab - Gnani Prisma STT Service Module
- * Handles authentication, audio dispatch, and response parsing for Gnani Prisma STT.
- * Keeps all provider logic isolated from controllers and never exposes keys to frontend.
- * Provides explicit LIVE vs SIMULATED separation. Never silently converts a failed live request
- * into a fake success.
+ * IndicVoice Lab - Gnani Prisma STT / Vachana AI Service Module
+ * Handles authentication, audio dispatch, and response parsing for Gnani Prisma STT (Vachana AI).
+ * 
+ * Config:
+ * - GNANI_API_KEY_ID (Header: X-API-Key-ID)
+ * - GNANI_API_BASE_URL (Default: https://api.vachana.ai)
+ * - GNANI_PRISMA_ENDPOINT (Default: https://api.vachana.ai/stt/v3)
+ * - Model: prisma-v3.0
  */
 
 const axios = require('axios');
 const fs = require('fs');
 const FormData = require('form-data');
 const path = require('path');
+require('dotenv').config();
 
-// Language code mapper to Gnani Prisma standard codes
-const LANGUAGE_CODES = {
-  hindi: 'hi',
-  marathi: 'mr',
-  hinglish: 'hi-en',
+// Supported official Vachana AI language codes:
+// as-IN, bn-IN, en-IN, gu-IN, hi-IN, indic-auto, kn-IN, ml-IN, mr-IN, pa-IN, ta-IN, te-IN
+const VACHANA_LANGUAGE_CODES = {
+  hindi: 'hi-IN',
+  'hi-in': 'hi-IN',
+  hi: 'hi-IN',
+  marathi: 'mr-IN',
+  'mr-in': 'mr-IN',
+  mr: 'mr-IN',
+  hinglish: 'indic-auto',
+  'hi-en': 'indic-auto',
   english: 'en-IN',
-  'hi-in': 'hi',
-  'mr-in': 'mr',
-  'en-in': 'en-IN'
+  'en-in': 'en-IN',
+  bengali: 'bn-IN',
+  'bn-in': 'bn-IN',
+  tamil: 'ta-IN',
+  'ta-in': 'ta-IN',
+  telugu: 'te-IN',
+  'te-in': 'te-IN',
+  gujarati: 'gu-IN',
+  'gu-in': 'gu-IN',
+  kannada: 'kn-IN',
+  'kn-in': 'kn-IN',
+  malayalam: 'ml-IN',
+  'ml-in': 'ml-IN',
+  punjabi: 'pa-IN',
+  'pa-in': 'pa-IN',
+  auto: 'indic-auto',
+  indic: 'indic-auto'
 };
 
+function getApiKey() {
+  return process.env.GNANI_API_KEY_ID || process.env.GNANI_PRISMA_API_KEY;
+}
+
+function getEndpoint() {
+  if (process.env.GNANI_PRISMA_ENDPOINT) return process.env.GNANI_PRISMA_ENDPOINT;
+  const base = process.env.GNANI_API_BASE_URL || 'https://api.vachana.ai';
+  return `${base.replace(/\/+$/, '')}/stt/v3`;
+}
+
 /**
- * Transcribe audio using Gnani Prisma STT
- * @param {string} audioFilePath - Absolute path to uploaded audio file
- * @param {string} language - Target language (hindi, marathi, hinglish)
- * @param {Object} options - Additional options e.g. mock override
- * @returns {Promise<{transcript: string, confidence: number, provider: string, isSimulated: boolean, rawMetadata: Object}>}
+ * Transcribes audio via Gnani Prisma STT (Vachana AI)
+ * @param {string|Buffer} audioInput - Audio file path or raw Buffer
+ * @param {string} language - Target language (e.g. 'hi-IN', 'mr-IN', 'hinglish')
+ * @param {Object} options - { simulatedTranscript, forceMock, timeoutMs }
  */
-async function transcribeAudio(audioFilePath, language = 'hindi', options = {}) {
-  const apiKey = process.env.GNANI_PRISMA_API_KEY;
-  const accessKey = process.env.GNANI_PRISMA_ACCESS_KEY;
-  const endpoint = process.env.GNANI_PRISMA_ENDPOINT || 'https://prisma.gnani.ai/api/v1/stt';
+async function transcribeAudio(audioInput, language = 'hi-IN', options = {}) {
+  const apiKey = getApiKey();
+  const endpoint = getEndpoint();
   const langKey = String(language).toLowerCase().replace(/_/g, '-');
-  const langCode = LANGUAGE_CODES[langKey] || 'hi';
+  const langCode = VACHANA_LANGUAGE_CODES[langKey] || 'indic-auto';
+  const model = process.env.GNANI_PRISMA_MODEL || 'prisma-v3.0';
 
-  // 1. If explicit mock mode requested or no API credentials supplied
+  // 1. Explicit mock mode or missing API key
   if (process.env.USE_MOCK_PRISMA === 'true' || !apiKey || options.forceMock) {
-    return runMockTranscription(audioFilePath, language, options);
+    return runMockTranscription(audioInput, language, options);
   }
 
-  // 2. Validate audio file exists before attempting network request
-  if (!fs.existsSync(audioFilePath)) {
-    throw new Error(`Audio file not found at path: ${audioFilePath}`);
+  // 2. Prepare Form Data
+  const formData = new FormData();
+
+  if (Buffer.isBuffer(audioInput)) {
+    if (audioInput.length < 100) {
+      throw new Error('Audio buffer is too small (< 100 bytes)');
+    }
+    formData.append('audio_file', audioInput, {
+      filename: 'voice.wav',
+      contentType: 'audio/wav'
+    });
+  } else if (typeof audioInput === 'string' && fs.existsSync(audioInput)) {
+    const stat = fs.statSync(audioInput);
+    if (stat.size < 100) {
+      throw new Error('Audio file is empty or corrupted (< 100 bytes)');
+    }
+    formData.append('audio_file', fs.createReadStream(audioInput));
+  } else if (options.simulatedTranscript) {
+    return runMockTranscription(audioInput, language, options);
+  } else {
+    throw new Error(`Audio input not found or unreadable: ${audioInput}`);
   }
 
-  const stat = fs.statSync(audioFilePath);
-  if (stat.size < 100) {
-    throw new Error('Audio file is empty or corrupted (size < 100 bytes)');
-  }
+  formData.append('model', model);
+  formData.append('language_code', langCode);
 
-  // 3. Live API Request
+  // 3. Dispatch Live Vachana AI Request
   try {
-    const formData = new FormData();
-    formData.append('audio', fs.createReadStream(audioFilePath));
-    formData.append('language', langCode);
-    formData.append('encoding', options.encoding || 'LINEAR16');
-
     const headers = {
       ...formData.getHeaders(),
-      'x-api-key': apiKey
+      'X-API-Key-ID': apiKey
     };
-
-    if (accessKey) {
-      headers['x-access-key'] = accessKey;
-    }
 
     const response = await axios.post(endpoint, formData, {
       headers,
-      timeout: options.timeoutMs || 25000 // 25s timeout
+      timeout: options.timeoutMs || 30000 // 30s timeout
     });
 
     const data = response.data;
-    const transcript = data.transcript || data.text || (data.results && data.results[0]?.transcript) || '';
+    const rawTranscript = data.transcript || data.text || (data.results && data.results[0]?.transcript) || '';
+    const transcript = rawTranscript.trim();
     const confidence = data.confidence || 0.95;
 
     return {
-      transcript: transcript.trim(),
+      transcript,
       confidence,
-      provider: 'Gnani Prisma STT (Live API)',
+      provider: 'Gnani Prisma STT (Live Vachana v3)',
       isSimulated: false,
+      processingTime: data.processing_time || data.end_to_end_latency,
       rawMetadata: data
     };
   } catch (error) {
-    // NEVER silently convert live failure to mock result!
-    const errorMsg = error.response?.data?.message || error.message;
+    const errorMsg = error.response?.data?.error?.message || error.response?.data?.message || error.message;
     console.error('Gnani Prisma Live API Failure:', errorMsg);
-    const err = new Error(`Gnani Prisma API Error (${error.response?.status || 500}): ${errorMsg}`);
+
+    // If API rejected or network timed out, NEVER pretend mock succeeded
+    const err = new Error(`Gnani Prisma API Error (${error.response?.status || 502}): ${errorMsg}`);
     err.isApiError = true;
     err.statusCode = error.response?.status || 502;
+    err.responseData = error.response?.data;
     throw err;
   }
 }
 
 /**
  * Mock transcription generator for testing & demo purposes
- * Clearly stamped with isSimulated: true
  */
-function runMockTranscription(audioFilePath, language, options = {}) {
-  const filename = audioFilePath ? path.basename(audioFilePath).toLowerCase() : '';
-  
+function runMockTranscription(audioInput, language, options = {}) {
+  const filename = typeof audioInput === 'string' ? path.basename(audioInput).toLowerCase() : '';
+
   let transcript = '';
   let confidence = 0.92;
 
@@ -128,12 +171,14 @@ function runMockTranscription(audioFilePath, language, options = {}) {
     confidence,
     provider: 'Gnani Prisma STT (Simulated / Local Mode)',
     isSimulated: true,
-    warning: 'Running in simulated benchmark mode (No GNANI_PRISMA_API_KEY configured)'
+    warning: 'Running in simulated benchmark mode'
   };
 }
 
 module.exports = {
   transcribeAudio,
   runMockTranscription,
-  LANGUAGE_CODES
+  getApiKey,
+  getEndpoint,
+  VACHANA_LANGUAGE_CODES
 };

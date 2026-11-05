@@ -9,6 +9,7 @@
 const { calculateWER, calculateCER } = require('./evaluationEngine');
 const { evaluateCriticalEntities } = require('./entityEngine');
 const { timedTranscribe, codeMixingIndex } = require('./observabilityService');
+const { transcribeAudio } = require('./prismaService');
 
 class SttProviderService {
   constructor() {

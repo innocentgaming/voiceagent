@@ -1,78 +1,95 @@
 /**
- * IndicVoice Lab - Standalone Gnani Prisma STT Verification Script
- * Use this script to independently test and debug your Gnani Prisma API access
- * before running evaluations in the main application.
- *
+ * IndicVoice Lab - Live Gnani Prisma STT / Vachana AI Verification Script
+ * Validates live API connectivity, authentication, and speech-to-text response
+ * using the official Vachana API (api.vachana.ai).
+ * 
  * Usage:
- *   cd server
- *   node scripts/testGnaniLive.js
+ *   node server/scripts/testGnaniLive.js
  */
 
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
 const FormData = require('form-data');
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
 require('dotenv').config();
 
 async function testGnaniLive() {
   console.log('===============================================================');
-  console.log('📡 GNANI PRISMA STT LIVE CONNECTIVITY TEST');
+  console.log('📡 GNANI PRISMA STT (VACHANA AI) LIVE CONNECTIVITY TEST');
   console.log('===============================================================');
 
-  const apiKey = process.env.GNANI_PRISMA_API_KEY;
-  const accessKey = process.env.GNANI_PRISMA_ACCESS_KEY;
-  const endpoint = process.env.GNANI_PRISMA_ENDPOINT || 'https://prisma.gnani.ai/api/v1/stt';
+  const apiKey = process.env.GNANI_API_KEY_ID || process.env.GNANI_PRISMA_API_KEY;
+  const baseUrl = process.env.GNANI_API_BASE_URL || 'https://api.vachana.ai';
+  const endpoint = process.env.GNANI_PRISMA_ENDPOINT || `${baseUrl}/stt/v3`;
+  const model = process.env.GNANI_PRISMA_MODEL || 'prisma-v3.0';
 
-  console.log(`Endpoint:    ${endpoint}`);
-  console.log(`API Key:     ${apiKey ? `${apiKey.substring(0, 6)}...[CONFIGURED]` : '❌ NOT CONFIGURED'}`);
-  console.log(`Access Key:  ${accessKey ? `${accessKey.substring(0, 6)}...[CONFIGURED]` : 'ℹ️ NOT PROVIDED (OPTIONAL)'}`);
+  console.log(`Base URL:     ${baseUrl}`);
+  console.log(`Endpoint:     ${endpoint}`);
+  console.log(`Model:        ${model}`);
+  console.log(`API Key ID:   ${apiKey ? `${apiKey.substring(0, 12)}...${apiKey.substring(apiKey.length - 8)} [CONFIGURED ✅]` : '❌ NOT CONFIGURED'}`);
 
-  if (!apiKey || apiKey === 'your_gnani_api_key_here') {
-    console.log('\n⚠️ Notice: GNANI_PRISMA_API_KEY is not configured in server/.env.');
-    console.log('  To connect live Gnani Prisma STT:');
-    console.log('  1. Open server/.env');
-    console.log('  2. Replace GNANI_PRISMA_API_KEY with your official key from Gnani AI');
-    console.log('  3. Re-run this script\n');
-    console.log('✅ Fallback: IndicVoice Lab will operate seamlessly in local simulation mode.');
+  if (!apiKey) {
+    console.log('\n⚠️ Notice: GNANI_API_KEY_ID is missing.');
+    console.log('  Configure GNANI_API_KEY_ID in server/.env and re-run.');
     return;
   }
 
-  // Look for a test audio file
-  const testAudioPath = path.join(__dirname, '../../samples/hindi_upi_500.wav');
-  if (!fs.existsSync(testAudioPath)) {
-    console.log(`Creating dummy audio buffer at ${testAudioPath} for test transmission...`);
+  // Find a test audio file
+  const testFiles = [
+    path.join(__dirname, '../uploads/hindi_upi_500.wav'),
+    path.join(__dirname, '../uploads/sample-rahul.wav'),
+    path.join(__dirname, '../../samples/hindi_upi_500.wav')
+  ];
+
+  let testAudioPath = testFiles.find(f => fs.existsSync(f));
+
+  if (!testAudioPath) {
+    console.log('No existing audio file found. Creating a short 16kHz test WAV...');
+    const { createWavBuffer } = require('./generateSampleWavs');
+    testAudioPath = path.join(__dirname, '../uploads/live_test.wav');
+    fs.writeFileSync(testAudioPath, createWavBuffer(2, 440));
   }
 
-  console.log('\n🚀 Dispatching test audio payload to Gnani Prisma...');
+  console.log(`Using Audio:  ${testAudioPath} (${fs.statSync(testAudioPath).size} bytes)`);
+  console.log('\n🚀 Dispatching live payload to Vachana STT v3...');
+
+  const t0 = Date.now();
   try {
     const formData = new FormData();
-    formData.append('audio', fs.createReadStream(testAudioPath));
-    formData.append('language', 'hi');
-    formData.append('encoding', 'LINEAR16');
+    formData.append('audio_file', fs.createReadStream(testAudioPath));
+    formData.append('model', model);
+    formData.append('language_code', 'hi-IN');
 
     const headers = {
       ...formData.getHeaders(),
-      'x-api-key': apiKey
+      'X-API-Key-ID': apiKey
     };
-    if (accessKey) headers['x-access-key'] = accessKey;
 
     const response = await axios.post(endpoint, formData, {
       headers,
-      timeout: 25000
+      timeout: 30000
     });
 
-    console.log('\n✅ GNANI PRISMA STT RESPONSE RECEIVED:');
-    console.log('Status:', response.status);
-    console.log('Data:', JSON.stringify(response.data, null, 2));
+    const elapsedMs = Date.now() - t0;
+    console.log('\n===============================================================');
+    console.log('🎉 GNANI PRISMA STT LIVE CONNECTION SUCCESSFUL!');
+    console.log('===============================================================');
+    console.log(`HTTP Status:       ${response.status} OK`);
+    console.log(`Roundtrip Latency: ${elapsedMs} ms`);
+    console.log(`Request ID:        ${response.data.request_id || 'N/A'}`);
+    console.log(`Model Deployed:    ${response.data.model || model}`);
+    console.log(`Server Proc Time:  ${response.data.processing_time || response.data.end_to_end_latency || 'N/A'} s`);
+    console.log(`Raw Transcript:    "${response.data.transcript || ''}"`);
+    console.log('===============================================================\n');
   } catch (error) {
-    console.error('\n❌ Gnani Prisma API Request Failed:');
+    console.error('\n❌ Gnani Prisma Live API Request Failed:');
     console.error('Error Message:', error.message);
     if (error.response) {
       console.error('HTTP Status:', error.response.status);
-      console.error('Response Data:', error.response.data);
+      console.error('Response Data:', JSON.stringify(error.response.data, null, 2));
     }
   }
 }
 
 testGnaniLive();
-

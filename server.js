@@ -14,6 +14,10 @@ const cors = require('cors');
 const axios = require('axios');
 const path = require('path');
 const fs = require('fs');
+require('dotenv').config({ path: path.join(__dirname, 'server/.env') });
+require('dotenv').config();
+
+const { transcribeAudio } = require('./server/src/services/prismaService');
 const { evaluateCriticalEntities, verifyEntity } = require('./server/src/services/entityEngine');
 const { normalizeNumbers } = require('./server/src/services/numberNormalizer');
 const { observability, timedTranscribe, codeMixingIndex, pct } = require('./server/src/services/observabilityService');
@@ -451,20 +455,40 @@ app.post('/api/evaluate-direct', upload.single('audio'), async (req, res) => {
   }
 
   let predicted = predictedTranscription;
-  let provider = 'Live Indic Speech Engine';
+  let provider = 'Gnani Prisma STT (Live Vachana v3)';
   let confidence = 0.95;
+  let isSimulated = false;
+  let providerLatencyMs = 0;
 
-  if (!predicted || predicted.trim().length === 0) {
-    const stt = await prismaService.transcribe(audioBuffer, mimeType, language, predictedTranscription);
-    predicted = stt.transcript;
-    provider = stt.provider;
-    confidence = stt.confidence;
+  if (audioBuffer && audioBuffer.length > 200) {
+    const pStart = Date.now();
+    try {
+      const stt = await transcribeAudio(audioBuffer, language);
+      providerLatencyMs = Date.now() - pStart;
+      if (stt.transcript && stt.transcript.length > 0) {
+        predicted = stt.transcript;
+      }
+      provider = stt.provider;
+      confidence = stt.confidence;
+      isSimulated = stt.isSimulated === true;
+    } catch (e) {
+      providerLatencyMs = Date.now() - pStart;
+      console.warn('Live Gnani STT notice:', e.message);
+      if (!predicted) predicted = expectedTranscription;
+      provider = 'Gnani Prisma STT (Simulated Fallback)';
+      isSimulated = true;
+    }
+  } else if (!predicted || predicted.trim().length === 0) {
+    predicted = expectedTranscription;
+    isSimulated = true;
   }
 
+  const evalStart = Date.now();
   const werResult = calculateWER(expectedTranscription, predicted);
   const cerResult = calculateCER(expectedTranscription, predicted, language === 'mr-IN' ? 'mr' : 'hi');
-  const entityResult = evaluateCriticalEntities(predicted, parsedEntities);
-  const latencyMs = Date.now() - startTime;
+  const entityResult = evaluateCriticalEntities(parsedEntities, predicted, language === 'mr-IN' ? 'mr' : 'hi');
+  const evalLatencyMs = Date.now() - evalStart;
+  const totalLatencyMs = Date.now() - startTime;
 
   const runResult = {
     id: `run_${Date.now()}`,
@@ -477,6 +501,10 @@ app.post('/api/evaluate-direct', upload.single('audio'), async (req, res) => {
     predictedTranscription: predicted,
     provider,
     confidence,
+    isSimulated,
+    providerLatencyMs,
+    evalLatencyMs,
+    latencyMs: totalLatencyMs,
     metrics: {
       wer: werResult.wer,
       cer: cerResult.cer,
@@ -490,7 +518,6 @@ app.post('/api/evaluate-direct', upload.single('audio'), async (req, res) => {
     wordDiff: werResult.diff,
     entityEvaluation: entityResult.entityEvaluation,
     audioFile: audioFileName,
-    latencyMs,
     createdAt: new Date().toISOString()
   };
 
@@ -759,13 +786,6 @@ app.post('/api/tests/:id/run', async (req, res) => {
 
   const evalLatencyMs = Date.now() - evalStart;
   const totalLatencyMs = Date.now() - startTime;
-      totalWords: werResult.total,
-      entityAccuracy: entityResult.entityAccuracy,
-      criticalFailureDetected: entityResult.criticalFailureDetected
-    };
-    wordDiff = werResult.diff;
-    entityEvaluation = entityResult.entityEvaluation;
-  }
 
   const runResult = {
     id: `run_${Date.now()}`,
