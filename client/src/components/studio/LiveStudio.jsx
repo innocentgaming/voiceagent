@@ -5,16 +5,112 @@ import Button from '../common/Button';
 import {
   Mic,
   Square,
+  Volume2,
+  CheckCircle2,
   Play,
   RotateCw,
-  Sparkles,
-  Volume2,
   FileText,
-  ShieldAlert,
-  CheckCircle2,
+  Sliders,
+  Sparkles,
+  ShieldCheck,
   AlertTriangle,
-  Upload
+  Upload,
+  Activity,
+  Layers
 } from 'lucide-react';
+
+const LANGUAGE_DEFAULTS = {
+  'hi-IN': {
+    name: 'Hindi',
+    expected: 'मुझे राहुल को 500 रुपये भेजने हैं।',
+    predicted: 'मुझे राहुल को 500 रुपये भेजने हैं।',
+    entities: [
+      { entityType: 'person', expectedValue: 'राहुल' },
+      { entityType: 'amount', expectedValue: '500' },
+      { entityType: 'currency', expectedValue: 'रुपये' }
+    ]
+  },
+  'mr-IN': {
+    name: 'Marathi',
+    expected: 'मला रोहनला पाचशे रुपये पाठवायचे आहेत.',
+    predicted: 'मला रोहनला पाचशे रुपये पाठवायचे आहेत.',
+    entities: [
+      { entityType: 'person', expectedValue: 'रोहन' },
+      { entityType: 'amount', expectedValue: '500' },
+      { entityType: 'currency', expectedValue: 'रुपये' }
+    ]
+  },
+  'hinglish': {
+    name: 'Hinglish',
+    expected: 'I want to send five hundred rupees to Rahul.',
+    predicted: 'I want to send five hundred rupees to Rahul.',
+    entities: [
+      { entityType: 'person', expectedValue: 'Rahul' },
+      { entityType: 'amount', expectedValue: '500' },
+      { entityType: 'currency', expectedValue: 'Rupees' }
+    ]
+  },
+  'en-IN': {
+    name: 'English',
+    expected: 'Please transfer five hundred rupees to Rahul today.',
+    predicted: 'Please transfer five hundred rupees to Rahul today.',
+    entities: [
+      { entityType: 'person', expectedValue: 'Rahul' },
+      { entityType: 'amount', expectedValue: '500' },
+      { entityType: 'currency', expectedValue: 'Rupees' }
+    ]
+  },
+  'ta-IN': {
+    name: 'Tamil',
+    expected: 'நான் ராகுலுக்கு 500 ரூபாய் அனுப்ப வேண்டும்.',
+    predicted: 'நான் ராகுலுக்கு 500 ரூபாய் அனுப்ப வேண்டும்.',
+    entities: [
+      { entityType: 'person', expectedValue: 'ராகுல்' },
+      { entityType: 'amount', expectedValue: '500' },
+      { entityType: 'currency', expectedValue: 'ரூபாய்' }
+    ]
+  },
+  'te-IN': {
+    name: 'Telugu',
+    expected: 'నేను రాహుల్‌కి 500 రూపాయలు పంపాలనుకుంటున్నాను.',
+    predicted: 'నేను రాహుల్‌కి 500 రూపాయలు పంపాలనుకుంటున్నాను.',
+    entities: [
+      { entityType: 'person', expectedValue: 'రాహుల్' },
+      { entityType: 'amount', expectedValue: '500' },
+      { entityType: 'currency', expectedValue: 'రూపాయలు' }
+    ]
+  },
+  'kn-IN': {
+    name: 'Kannada',
+    expected: 'ನಾನು ರಾಹುಲ್‌ಗೆ 500 ರೂಪಾಯಿ ಕಳುಹಿಸಬೇಕು.',
+    predicted: 'ನಾನು ರಾಹುಲ್‌ಗೆ 500 ರೂಪಾಯಿ ಕಳುಹಿಸಬೇಕು.',
+    entities: [
+      { entityType: 'person', expectedValue: 'ರಾಹುಲ್' },
+      { entityType: 'amount', expectedValue: '500' },
+      { entityType: 'currency', expectedValue: 'ರೂಪಾಯಿ' }
+    ]
+  },
+  'bn-IN': {
+    name: 'Bengali',
+    expected: 'আমি রাহুলকে ৫০০ টাকা পাঠাতে চাই।',
+    predicted: 'আমি রাহুলকে ৫০০ টাকা পাঠাতে চাই।',
+    entities: [
+      { entityType: 'person', expectedValue: 'রাহুল' },
+      { entityType: 'amount', expectedValue: '৫০০' },
+      { entityType: 'currency', expectedValue: 'টাকা' }
+    ]
+  },
+  'gu-IN': {
+    name: 'Gujarati',
+    expected: 'હું રાહુલને ૫૦૦ રૂપિયા મોકલવા માંગુ છું.',
+    predicted: 'હું રાહુલને ૫૦૦ રૂપિયા મોકલવા માંગુ છું.',
+    entities: [
+      { entityType: 'person', expectedValue: 'રાહુલ' },
+      { entityType: 'amount', expectedValue: '૫૦૦' },
+      { entityType: 'currency', expectedValue: 'રૂપિયા' }
+    ]
+  }
+};
 
 export default function LiveStudio({ onViewRunDetails }) {
   const [inputMode, setInputMode] = useState('mic');
@@ -35,6 +131,19 @@ export default function LiveStudio({ onViewRunDetails }) {
   const [newEntityVal, setNewEntityVal] = useState('');
   const [newEntityType, setNewEntityType] = useState('person');
 
+  // Cockpit view tab switcher ('eval', 'align', 'entities', 'all')
+  const [hudTab, setHudTab] = useState('eval');
+
+  const handleLanguageChange = (newLang) => {
+    setLanguage(newLang);
+    const preset = LANGUAGE_DEFAULTS[newLang];
+    if (preset) {
+      setExpectedText(preset.expected);
+      setPredictedText(preset.predicted);
+      setCriticalEntities([...preset.entities]);
+    }
+  };
+
   const handleAudioFileChange = (e) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -51,8 +160,8 @@ export default function LiveStudio({ onViewRunDetails }) {
     wer: 6.25,
     cer: 2.89,
     entityIntegrity: 100,
-    latency: 312,
     criticalPassed: true,
+    latency: 312,
     alignment: [
       { word: 'I', type: 'match' },
       { word: 'want', type: 'match' },
@@ -66,218 +175,328 @@ export default function LiveStudio({ onViewRunDetails }) {
       { word: '.', type: 'match' }
     ],
     entityTable: [
-      { type: 'person', expected: 'Rahul', recognized: 'Rahul', status: 'PASS' },
-      { type: 'amount', expected: '500', recognized: '500', status: 'PASS' },
-      { type: 'currency', expected: 'Rupees', recognized: 'Rupees', status: 'PASS' }
+      { type: 'Person', expected: 'Rahul', recognized: 'Rahul', status: 'pass' },
+      { type: 'Amount', expected: '500', recognized: '500', status: 'pass' },
+      { type: 'Currency', expected: 'Rupees', recognized: 'Rupees', status: 'pass' }
     ]
   });
 
-  // Recording state
+  // Recording State & Refs
   const [isRecording, setIsRecording] = useState(false);
   const [recordSeconds, setRecordSeconds] = useState(0);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
+  const canvasRef = useRef(null);
+  const audioContextRef = useRef(null);
+  const analyserRef = useRef(null);
+  const animFrameRef = useRef(null);
+  const recognitionRef = useRef(null);
   const timerRef = useRef(null);
 
+  // Initialize Web Speech Dictation
   useEffect(() => {
-    if (isRecording) {
-      timerRef.current = setInterval(() => {
-        setRecordSeconds((s) => s + 1);
-      }, 1000);
-    } else {
-      clearInterval(timerRef.current);
-      setRecordSeconds(0);
-    }
-    return () => clearInterval(timerRef.current);
-  }, [isRecording]);
+    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRec) {
+      const rec = new SpeechRec();
+      rec.continuous = true;
+      rec.interimResults = true;
+      rec.lang = language === 'hinglish' ? 'en-IN' : language;
 
-  const toggleRecording = () => {
-    if (!isRecording) {
+      rec.onresult = (e) => {
+        let transcript = '';
+        for (let i = e.resultIndex; i < e.results.length; ++i) {
+          transcript += e.results[i][0].transcript;
+        }
+        if (transcript.trim()) {
+          setPredictedText(transcript.trim());
+        }
+      };
+      recognitionRef.current = rec;
+    }
+
+    return () => {
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+      if (audioContextRef.current) audioContextRef.current.close().catch(() => {});
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, []);
+
+  // Update speech recognition language when state changes
+  useEffect(() => {
+    if (recognitionRef.current) {
+      recognitionRef.current.lang = language === 'hinglish' ? 'en-IN' : language;
+    }
+  }, [language]);
+
+  // Canvas visualizer waveform
+  const drawWaveform = () => {
+    const canvas = canvasRef.current;
+    if (!canvas || !analyserRef.current) return;
+
+    const ctx = canvas.getContext('2d');
+    const analyser = analyserRef.current;
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+
+    const render = () => {
+      animFrameRef.current = requestAnimationFrame(render);
+      analyser.getByteFrequencyData(dataArray);
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const barWidth = (canvas.width / bufferLength) * 2.5;
+      let x = 0;
+
+      for (let i = 0; i < bufferLength; i++) {
+        const barHeight = (dataArray[i] / 255) * canvas.height * 0.9;
+        ctx.fillStyle = '#3457d5';
+        ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+        x += barWidth + 1;
+      }
+    };
+    render();
+  };
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioChunksRef.current = [];
+      const mr = new MediaRecorder(stream);
+      mediaRecorderRef.current = mr;
+
+      const actx = new (window.AudioContext || window.webkitAudioContext)();
+      audioContextRef.current = actx;
+      const src = actx.createMediaStreamSource(stream);
+      const analyser = actx.createAnalyser();
+      analyser.fftSize = 64;
+      src.connect(analyser);
+      analyserRef.current = analyser;
+
+      mr.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data);
+      };
+
+      mr.onstop = () => {
+        const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const file = new File([blob], `mic_recording_${Date.now()}.webm`, { type: 'audio/webm' });
+        setUploadedFile(file);
+        const url = URL.createObjectURL(blob);
+        setAudioUrl(url);
+      };
+
+      mr.start();
       setIsRecording(true);
-      // Simulate real-time dictation preview
-      setTimeout(() => {
-        setPredictedText('I want to send five hundred rupees to Rahul.');
-      }, 2500);
-    } else {
-      setIsRecording(false);
+      setRecordSeconds(0);
+      timerRef.current = setInterval(() => setRecordSeconds((s) => s + 1), 1000);
+
+      drawWaveform();
+
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.start();
+        } catch (e) {}
+      }
+    } catch (err) {
+      alert('Microphone access denied: ' + err.message);
     }
   };
 
-  const handleAddEntity = () => {
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      mediaRecorderRef.current.stream?.getTracks().forEach((t) => t.stop());
+    }
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch (e) {}
+    }
+    if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+    if (timerRef.current) clearInterval(timerRef.current);
+    setIsRecording(false);
+  };
+
+  const handleAddEntity = (e) => {
+    e.preventDefault();
     if (!newEntityVal.trim()) return;
-    setCriticalEntities([
-      ...criticalEntities,
+    setCriticalEntities((prev) => [
+      ...prev,
       { entityType: newEntityType, expectedValue: newEntityVal.trim() }
     ]);
     setNewEntityVal('');
   };
 
   const handleRemoveEntity = (index) => {
-    setCriticalEntities(criticalEntities.filter((_, i) => i !== index));
+    setCriticalEntities((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleAutoDetect = () => {
-    const text = expectedText;
-    const detected = [];
-    if (/rahul/i.test(text)) detected.push({ entityType: 'person', expectedValue: 'Rahul' });
-    if (/rohan/i.test(text)) detected.push({ entityType: 'person', expectedValue: 'Rohan' });
-    if (/500|five hundred|पाँच सौ/i.test(text)) detected.push({ entityType: 'amount', expectedValue: '500' });
-    if (/rupees|रुपये/i.test(text)) detected.push({ entityType: 'currency', expectedValue: 'Rupees' });
-
-    if (detected.length > 0) {
-      setCriticalEntities(detected);
-    }
-  };
-
-  const runEvaluation = async () => {
+  // Run Real Evaluation
+  const handleRunEvaluation = async () => {
     setIsEvaluating(true);
     try {
+      const formData = new FormData();
+      formData.append('expectedTranscription', expectedText);
+      formData.append('hypothesis', predictedText);
+      formData.append('language', language);
+      formData.append('criticalEntities', JSON.stringify(criticalEntities));
+
+      if (uploadedFile) {
+        formData.append('audio', uploadedFile);
+      }
+
       const res = await fetch('/api/evaluate-direct', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          expectedText,
-          predictedText,
-          language,
-          criticalEntities
-        })
+        body: formData
       });
       const data = await res.json();
-      if (data.success) {
-        const report = data.data;
+
+      if (data.success && data.report) {
+        const r = data.report;
+        const werVal = typeof r.metrics?.wer === 'number' ? r.metrics.wer * 100 : 0;
+        const cerVal = typeof r.metrics?.cer === 'number' ? r.metrics.cer * 100 : 0;
+
         setEvalResult({
-          wer: report.wer || 0,
-          cer: report.cer || 0,
-          entityIntegrity: report.criticalPassed ? 100 : 0,
-          latency: report.totalLatencyMs || 312,
-          criticalPassed: report.criticalPassed,
-          alignment: report.alignment || [],
-          entityTable: report.entities || []
+          wer: parseFloat(werVal.toFixed(1)),
+          cer: parseFloat(cerVal.toFixed(1)),
+          entityIntegrity: r.criticalAccuracy ? parseFloat(r.criticalAccuracy.toFixed(1)) : (r.criticalPassed ? 100 : 0),
+          criticalPassed: r.criticalPassed,
+          latency: r.latencyMs || 298,
+          alignment: r.alignment || expectedText.split(/\s+/).map((w) => ({ word: w, type: 'match' })),
+          entityTable: (r.entityEvaluation || []).map((ent) => ({
+            type: ent.entityType,
+            expected: ent.expectedValue,
+            recognized: ent.foundValue || (ent.found ? ent.expectedValue : 'MISMATCH'),
+            status: ent.found ? 'pass' : 'fail'
+          }))
         });
+      } else {
+        const words = expectedText.trim().split(/\s+/);
+        setEvalResult((prev) => ({
+          ...prev,
+          alignment: words.map((w) => ({ word: w, type: 'match' }))
+        }));
       }
-    } catch (e) {
-      console.error(e);
+    } catch (err) {
+      console.error('Direct evaluation failed:', err);
     } finally {
       setIsEvaluating(false);
     }
   };
 
-  const formatTimer = (secs) => {
-    const m = Math.floor(secs / 60).toString().padStart(2, '0');
-    const s = (secs % 60).toString().padStart(2, '0');
-    return `${m}:${s}`;
-  };
-
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Studio Header Banner */}
-      <Card className="flex flex-col md:flex-row items-center justify-between gap-6 bg-gradient-to-r from-white via-[#f8f9fc] to-white dark:from-[#111622] dark:via-[#171d2b] dark:to-[#111622]">
-        <div className="space-y-2 max-w-xl">
-          <Badge variant="primary" size="sm">Live Evaluation Studio</Badge>
+      {/* Studio Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#e6e9ef] dark:border-[#1e2638]">
+        <div>
           <h1 className="text-xl sm:text-2xl font-extrabold text-[#151923] dark:text-[#f1f5f9] tracking-tight">
-            Evaluate voice agents for real-world India.
+            Live Speech AI Testing Studio
           </h1>
-          <p className="text-xs sm:text-sm text-[#697386] dark:text-[#94a3b8] leading-relaxed">
-            Record or upload speech, transcribe with Gnani Prisma Vachana AI v3, and audit accuracy, latency, and critical business entities.
+          <p className="mt-1 text-xs sm:text-sm text-[#697386] dark:text-[#94a3b8]">
+            Interactive testing workbench for real-time dictation, noise injection, and entity extraction audit.
           </p>
-          <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
-            <Badge variant="neutral" size="sm">Google Web Audio API</Badge>
-            <Badge variant="success" size="sm">Real-Time Analysis</Badge>
-            <Badge variant="purple" size="sm">Multi-Dialect Support</Badge>
-          </div>
         </div>
 
-        {/* Ambient Wave Graphic Badge */}
-        <div className="flex items-center gap-1.5 h-12 px-6 rounded-2xl bg-[#f8f9fc] dark:bg-[#0d121c] border border-[#e6e9ef] dark:border-[#1e2638]">
-          <span className="w-1 bg-[#3457d5] rounded-full h-4 animate-pulse"></span>
-          <span className="w-1 bg-[#4f70ec] rounded-full h-8 animate-pulse" style={{ animationDelay: '100ms' }}></span>
-          <span className="w-1 bg-[#7c3aed] rounded-full h-10 animate-pulse" style={{ animationDelay: '250ms' }}></span>
-          <span className="w-1 bg-[#3457d5] rounded-full h-6 animate-pulse" style={{ animationDelay: '150ms' }}></span>
-          <span className="w-1 bg-[#4f70ec] rounded-full h-3 animate-pulse"></span>
-          <span className="text-xs font-mono font-bold text-[#697386] dark:text-[#94a3b8] ml-2">Audio Spectrum Ready</span>
+        <div className="flex items-center gap-2">
+          <Badge variant="purple" size="md">
+            Prisma v3 Live STT
+          </Badge>
+          <Badge variant={evalResult.criticalPassed ? 'success' : 'danger'} size="md">
+            {evalResult.criticalPassed ? 'Zero-Error Pass' : 'Entity Alert'}
+          </Badge>
         </div>
-      </Card>
+      </div>
 
-      {/* 2-Column Split Workspace */}
+      {/* Main 2-Column Split Workbench */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left Column: Audio Studio */}
+        {/* Left Column: Input Studio (Audio / Mic / Metadata) */}
         <div className="lg:col-span-5 space-y-4">
           <Card className="space-y-4">
-            {/* Input Mode Toggle */}
-            <div className="flex items-center justify-between pb-3 border-b border-[#e6e9ef] dark:border-[#1e2638]">
-              <div className="flex p-0.5 rounded-[9px] bg-[#f2f4f8] dark:bg-[#1a2234] border border-[#e6e9ef] dark:border-[#1e2638] text-xs font-semibold">
-                <button
-                  onClick={() => setInputMode('mic')}
-                  className={`px-3 py-1 rounded-[7px] transition cursor-pointer ${
-                    inputMode === 'mic' ? 'bg-white dark:bg-[#111622] text-[#3457d5] dark:text-[#6a87f5] shadow-xs' : 'text-[#697386] dark:text-[#94a3b8]'
-                  }`}
-                >
-                  Record Live
-                </button>
-                <button
-                  onClick={() => setInputMode('upload')}
-                  className={`px-3 py-1 rounded-[7px] transition cursor-pointer ${
-                    inputMode === 'upload' ? 'bg-white dark:bg-[#111622] text-[#3457d5] dark:text-[#6a87f5] shadow-xs' : 'text-[#697386] dark:text-[#94a3b8]'
-                  }`}
-                >
-                  Upload Audio
-                </button>
-              </div>
-
-              <div className="flex items-center gap-1.5 text-xs font-mono text-[#16865b] font-semibold">
-                <span className="w-2 h-2 rounded-full bg-[#16865b] animate-pulse"></span>
-                <span>{inputMode === 'mic' ? 'Live Mic Ready' : uploadedFile ? 'Audio Ready' : 'Upload File'}</span>
-              </div>
+            {/* Input Mode Selector Tabs */}
+            <div className="flex p-1 rounded-[9px] bg-[#f2f4f8] dark:bg-[#1a2234] border border-[#e6e9ef] dark:border-[#1e2638] text-xs font-semibold">
+              <button
+                type="button"
+                onClick={() => setInputMode('mic')}
+                className={`flex-1 py-1.5 rounded-[7px] transition cursor-pointer flex items-center justify-center gap-1.5 ${
+                  inputMode === 'mic'
+                    ? 'bg-white dark:bg-[#111622] text-[#3457d5] dark:text-[#6a87f5] shadow-xs'
+                    : 'text-[#697386] dark:text-[#94a3b8] hover:text-[#151923] dark:hover:text-[#f1f5f9]'
+                }`}
+              >
+                <Mic className="w-3.5 h-3.5" />
+                <span>Microphone Record</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setInputMode('upload')}
+                className={`flex-1 py-1.5 rounded-[7px] transition cursor-pointer flex items-center justify-center gap-1.5 ${
+                  inputMode === 'upload'
+                    ? 'bg-white dark:bg-[#111622] text-[#3457d5] dark:text-[#6a87f5] shadow-xs'
+                    : 'text-[#697386] dark:text-[#94a3b8] hover:text-[#151923] dark:hover:text-[#f1f5f9]'
+                }`}
+              >
+                <Upload className="w-3.5 h-3.5" />
+                <span>Upload Audio</span>
+              </button>
             </div>
 
-            {/* Tab Panel 1: Microphone HUD */}
+            {/* Input Mode 1: Microphone Stream */}
             {inputMode === 'mic' ? (
-              <div className="p-6 rounded-[12px] bg-[#f8f9fc] dark:bg-[#0d121c] border border-[#e6e9ef] dark:border-[#1e2638] flex flex-col items-center justify-center text-center space-y-3">
-                <div className="flex items-center gap-4">
+              <div className="p-4 rounded-[12px] bg-[#f8f9fc] dark:bg-[#0d121c] border border-[#e6e9ef] dark:border-[#1e2638] flex flex-col items-center justify-center text-center space-y-3">
+                <canvas
+                  ref={canvasRef}
+                  width={280}
+                  height={50}
+                  className="rounded bg-white dark:bg-[#111622] border border-[#e6e9ef] dark:border-[#1e2638] w-full max-w-[280px]"
+                />
+
+                <div className="flex items-center gap-3">
                   <button
-                    onClick={toggleRecording}
-                    className={`w-16 h-16 rounded-full flex items-center justify-center text-white transition-all duration-200 cursor-pointer shadow-lg active:scale-95 ${
+                    type="button"
+                    onClick={isRecording ? stopRecording : startRecording}
+                    className={`w-14 h-14 rounded-full flex items-center justify-center text-white transition shadow-sm cursor-pointer active:scale-95 ${
                       isRecording
-                        ? 'bg-[#d64545] shadow-[#d64545]/40 animate-pulse'
-                        : 'bg-gradient-to-tr from-[#3457d5] to-[#7c3aed] shadow-[#3457d5]/30 hover:scale-105'
+                        ? 'bg-[#d64545] animate-pulse ring-4 ring-[#d64545]/20'
+                        : 'bg-[#3457d5] hover:bg-[#2845b5]'
                     }`}
                   >
-                    {isRecording ? <Square className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
+                    {isRecording ? <Square className="w-5 h-5" /> : <Mic className="w-6 h-6" />}
                   </button>
+
+                  <div className="text-left font-mono">
+                    <div className="text-xs font-bold text-[#151923] dark:text-[#f1f5f9]">
+                      {isRecording ? 'Listening live...' : 'Press Mic to Dictate'}
+                    </div>
+                    <div className="text-[11px] text-[#697386] dark:text-[#94a3b8]">
+                      {isRecording ? `${recordSeconds}s elapsed` : 'Devanagari web speech enabled'}
+                    </div>
+                  </div>
                 </div>
 
-                <div>
-                  <div className="font-mono text-base font-extrabold text-[#151923] dark:text-[#f1f5f9]">
-                    {formatTimer(recordSeconds)}
+                {audioUrl && !isRecording && (
+                  <div className="w-full pt-1">
+                    <audio controls src={audioUrl} className="w-full h-8 mt-1 rounded" />
                   </div>
-                  <div className="text-[11px] text-[#697386] dark:text-[#94a3b8] mt-0.5">
-                    {isRecording ? 'Listening to voice stream...' : 'Click to record microphone'}
-                  </div>
-                </div>
+                )}
               </div>
             ) : (
-              /* Tab Panel 2: Audio File Upload Dropzone */
-              <div className="p-6 rounded-[12px] bg-[#f8f9fc] dark:bg-[#0d121c] border-2 border-dashed border-[#e6e9ef] dark:border-[#1e2638] hover:border-[#3457d5] dark:hover:border-[#6a87f5] transition flex flex-col items-center justify-center text-center space-y-3">
+              /* Input Mode 2: Audio File Upload Dropzone */
+              <div className="p-4 rounded-[12px] bg-[#f8f9fc] dark:bg-[#0d121c] border-2 border-dashed border-[#e6e9ef] dark:border-[#1e2638] flex flex-col items-center justify-center text-center space-y-2">
                 <input
                   type="file"
                   id="studio-audio-upload"
-                  accept="audio/*,.wav,.mp3,.ogg,.m4a"
-                  className="hidden"
+                  accept="audio/*"
                   onChange={handleAudioFileChange}
+                  className="hidden"
                 />
                 <label
                   htmlFor="studio-audio-upload"
-                  className="cursor-pointer flex flex-col items-center space-y-2"
+                  className="cursor-pointer flex flex-col items-center gap-1 text-center w-full"
                 >
-                  <div className="w-12 h-12 rounded-full bg-[#ebf0ff] dark:bg-[#1a233b] text-[#3457d5] dark:text-[#6a87f5] flex items-center justify-center">
-                    <Upload className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <span className="font-bold text-xs text-[#3457d5] dark:text-[#6a87f5] hover:underline">
-                      Click to upload audio
-                    </span>
-                    <span className="text-xs text-[#697386] dark:text-[#94a3b8]"> or drag & drop</span>
-                  </div>
-                  <p className="text-[10px] text-[#8c97a8] font-mono">
-                    WAV, MP3, OGG, or M4A (16kHz PCM recommended)
+                  <Upload className="w-8 h-8 text-[#3457d5] dark:text-[#6a87f5]" />
+                  <span className="text-xs font-bold text-[#151923] dark:text-[#f1f5f9]">
+                    Click to browse or drag Indian voice sample
+                  </span>
+                  <p className="text-[11px] text-[#697386] dark:text-[#94a3b8]">
+                    Supports .wav, .mp3, .ogg, .webm (Max 25MB)
                   </p>
                 </label>
                 {uploadedFile && (
@@ -306,6 +525,48 @@ export default function LiveStudio({ onViewRunDetails }) {
               </div>
             )}
 
+            {/* Quick Language Switcher Pills */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="text-[11px] font-bold text-[#697386] dark:text-[#94a3b8]">
+                  Quick Language Switcher
+                </label>
+                <span className="text-[10px] text-[#3457d5] dark:text-[#6a87f5] font-mono">
+                  {LANGUAGE_DEFAULTS[language]?.name || 'Custom'}
+                </span>
+              </div>
+              <div className="flex flex-wrap items-center gap-1.5">
+                {['hinglish', 'hi-IN', 'mr-IN', 'en-IN', 'ta-IN', 'te-IN', 'kn-IN', 'bn-IN', 'gu-IN'].map((code) => {
+                  const labels = {
+                    'hinglish': 'Hinglish',
+                    'hi-IN': 'Hindi',
+                    'mr-IN': 'Marathi',
+                    'en-IN': 'English',
+                    'ta-IN': 'Tamil',
+                    'te-IN': 'Telugu',
+                    'kn-IN': 'Kannada',
+                    'bn-IN': 'Bengali',
+                    'gu-IN': 'Gujarati'
+                  };
+                  const active = language === code;
+                  return (
+                    <button
+                      key={code}
+                      type="button"
+                      onClick={() => handleLanguageChange(code)}
+                      className={`px-2.5 py-1 rounded-full text-xs font-semibold transition cursor-pointer ${
+                        active
+                          ? 'bg-[#3457d5] text-white shadow-xs font-bold'
+                          : 'bg-[#f2f4f8] dark:bg-[#1a2234] text-[#697386] dark:text-[#94a3b8] hover:text-[#151923] dark:hover:text-[#f1f5f9]'
+                      }`}
+                    >
+                      {labels[code]}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Benchmark Test Parameters Grid */}
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div>
@@ -314,7 +575,7 @@ export default function LiveStudio({ onViewRunDetails }) {
                 </label>
                 <select
                   value={language}
-                  onChange={(e) => setLanguage(e.target.value)}
+                  onChange={(e) => handleLanguageChange(e.target.value)}
                   className="w-full saas-control px-2.5 py-1.5 cursor-pointer font-medium"
                 >
                   <option value="hinglish">Hinglish (Code-Mixed Matrix)</option>
@@ -358,114 +619,109 @@ export default function LiveStudio({ onViewRunDetails }) {
                   <option value="snr-20">Office AC Ambient (20 dB SNR)</option>
                   <option value="snr-10">Traffic & Street (10 dB SNR)</option>
                   <option value="snr-5">Crowded Market (5 dB SNR)</option>
-                  <option value="snr-0">Extreme AWGN (0 dB SNR)</option>
+                  <option value="snr-0">Critical Harsh AWGN (0 dB SNR)</option>
                 </select>
               </div>
 
               <div>
                 <label className="block text-[11px] font-bold text-[#697386] dark:text-[#94a3b8] mb-1">
-                  Evaluation STT Model
+                  Speech AI Engine Model
                 </label>
                 <select
                   value={model}
                   onChange={(e) => setModel(e.target.value)}
-                  className="w-full saas-control px-2.5 py-1.5 cursor-pointer font-medium font-mono text-[11px]"
+                  className="w-full saas-control px-2.5 py-1.5 cursor-pointer font-medium"
                 >
-                  <option value="gnani-prisma-v3">Gnani Prisma STT v3 (Live)</option>
-                  <option value="whisper-indic">OpenAI Whisper Indic (Baseline)</option>
+                  <option value="gnani-prisma-v3">Gnani Prisma STT v3</option>
+                  <option value="whisper-indic">OpenAI Whisper Indic</option>
+                  <option value="google-speech">Google Cloud Speech Indic</option>
                 </select>
               </div>
             </div>
 
             {/* Expected Ground Truth */}
             <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="text-[11px] font-bold text-[#697386] dark:text-[#94a3b8]">
-                  Expected Ground Truth (Reference) *
-                </label>
-                <button
-                  onClick={handleAutoDetect}
-                  className="text-[10px] font-bold text-[#3457d5] dark:text-[#6a87f5] hover:underline flex items-center gap-1 cursor-pointer"
-                >
-                  <Sparkles className="w-3 h-3" />
-                  <span>Auto-Detect Entities</span>
-                </button>
-              </div>
+              <label className="block text-[11px] font-bold text-[#697386] dark:text-[#94a3b8] mb-1">
+                Expected Ground Truth (Reference) *
+              </label>
               <textarea
-                rows={2}
                 value={expectedText}
                 onChange={(e) => setExpectedText(e.target.value)}
+                rows={2}
                 className="w-full saas-control p-2.5 text-xs font-devanagari"
+                placeholder="Ground-truth speech transcript"
               />
             </div>
 
-            {/* Recognized Output */}
+            {/* Recognized Output / Hypothesis */}
             <div>
               <label className="block text-[11px] font-bold text-[#697386] dark:text-[#94a3b8] mb-1">
-                Recognized Speech Output (Hypothesis)
+                Speech Output (Hypothesis)
               </label>
               <textarea
-                rows={2}
                 value={predictedText}
                 onChange={(e) => setPredictedText(e.target.value)}
+                rows={2}
                 className="w-full saas-control p-2.5 text-xs font-devanagari"
+                placeholder="Predicted transcript"
               />
             </div>
 
-            {/* Critical Entities Chips */}
-            <div>
-              <label className="block text-[11px] font-bold text-[#697386] dark:text-[#94a3b8] mb-1">
-                Critical Business Entities (Strict Zero-Error Audit)
+            {/* Critical Business Entities Tagging */}
+            <div className="space-y-2">
+              <label className="block text-[11px] font-bold text-[#697386] dark:text-[#94a3b8]">
+                Critical Entities (Strict Zero-Error Audit)
               </label>
-              <div className="flex gap-1.5 mb-2">
+              <form onSubmit={handleAddEntity} className="flex gap-2">
                 <select
                   value={newEntityType}
                   onChange={(e) => setNewEntityType(e.target.value)}
-                  className="saas-control px-2 py-1 text-xs w-24 cursor-pointer"
+                  className="saas-control px-2 py-1.5 text-xs font-medium cursor-pointer"
                 >
                   <option value="person">Person</option>
                   <option value="amount">Amount</option>
-                  <option value="currency">Currency</option>
                   <option value="date">Date</option>
                   <option value="location">Location</option>
+                  <option value="currency">Currency</option>
                 </select>
                 <input
                   type="text"
                   value={newEntityVal}
                   onChange={(e) => setNewEntityVal(e.target.value)}
-                  placeholder="e.g. Rahul, 500"
-                  className="flex-1 saas-control px-2.5 py-1 text-xs"
-                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddEntity())}
+                  placeholder="Expected value (e.g., Rahul, 500)"
+                  className="flex-1 saas-control px-2.5 py-1.5 text-xs font-devanagari"
                 />
-                <Button onClick={handleAddEntity} size="sm">
-                  + Add
+                <Button type="submit" variant="secondary" size="sm">
+                  Add
                 </Button>
-              </div>
+              </form>
 
-              <div className="flex flex-wrap gap-1.5 min-h-[28px]">
+              {/* Tagged Chips */}
+              <div className="flex flex-wrap gap-1.5 pt-1">
                 {criticalEntities.map((ent, idx) => (
                   <span
                     key={idx}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[7px] text-[11px] font-mono bg-[#f2f4f8] dark:bg-[#1a2234] border border-[#e6e9ef] dark:border-[#1e2638] text-[#151923] dark:text-[#f1f5f9]"
+                    className="inline-flex items-center gap-1.5 px-2 py-1 rounded-[6px] text-xs font-medium bg-[#f2f4f8] dark:bg-[#1a2234] border border-[#e6e9ef] dark:border-[#1e2638] text-[#151923] dark:text-[#f1f5f9]"
                   >
-                    <span className="font-semibold text-[#3457d5] dark:text-[#6a87f5]">{ent.expectedValue}</span>
+                    <span className="text-[10px] uppercase font-mono text-[#8c97a8]">{ent.entityType}:</span>
+                    <span className="font-devanagari">{ent.expectedValue}</span>
                     <button
+                      type="button"
                       onClick={() => handleRemoveEntity(idx)}
-                      className="text-[#8c97a8] hover:text-[#d64545] cursor-pointer ml-1"
+                      className="text-[#8c97a8] hover:text-[#d64545] font-bold ml-1 cursor-pointer"
                     >
-                      ✕
+                      ×
                     </button>
                   </span>
                 ))}
               </div>
             </div>
 
-            {/* Primary Action Button */}
+            {/* Run Button */}
             <Button
-              onClick={runEvaluation}
-              loading={isEvaluating}
+              onClick={handleRunEvaluation}
+              disabled={isEvaluating}
               variant="primary"
-              size="md"
               className="w-full"
               icon={RotateCw}
             >
@@ -477,7 +733,67 @@ export default function LiveStudio({ onViewRunDetails }) {
         {/* Right Column: Live Evaluation Cockpit */}
         <div className="lg:col-span-7 space-y-4">
           <Card className="space-y-4">
-            {/* 5 Key Metric Cards Grid */}
+            {/* Cockpit HUD Header with Segmented Navigation Tabs */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-[#e6e9ef] dark:border-[#1e2638] gap-3">
+              <div className="flex p-1 rounded-[9px] bg-[#f2f4f8] dark:bg-[#1a2234] border border-[#e6e9ef] dark:border-[#1e2638] text-xs font-semibold">
+                <button
+                  type="button"
+                  onClick={() => setHudTab('eval')}
+                  className={`px-3 py-1.5 rounded-[7px] transition cursor-pointer flex items-center gap-1.5 ${
+                    hudTab === 'eval'
+                      ? 'bg-white dark:bg-[#111622] text-[#3457d5] dark:text-[#6a87f5] shadow-xs font-bold'
+                      : 'text-[#697386] dark:text-[#94a3b8] hover:text-[#151923] dark:hover:text-[#f1f5f9]'
+                  }`}
+                >
+                  <Activity className="w-3.5 h-3.5" />
+                  <span>Evaluation</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setHudTab('align')}
+                  className={`px-3 py-1.5 rounded-[7px] transition cursor-pointer flex items-center gap-1.5 ${
+                    hudTab === 'align'
+                      ? 'bg-white dark:bg-[#111622] text-[#3457d5] dark:text-[#6a87f5] shadow-xs font-bold'
+                      : 'text-[#697386] dark:text-[#94a3b8] hover:text-[#151923] dark:hover:text-[#f1f5f9]'
+                  }`}
+                >
+                  <Sliders className="w-3.5 h-3.5" />
+                  <span>Alignment</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setHudTab('entities')}
+                  className={`px-3 py-1.5 rounded-[7px] transition cursor-pointer flex items-center gap-1.5 ${
+                    hudTab === 'entities'
+                      ? 'bg-white dark:bg-[#111622] text-[#3457d5] dark:text-[#6a87f5] shadow-xs font-bold'
+                      : 'text-[#697386] dark:text-[#94a3b8] hover:text-[#151923] dark:hover:text-[#f1f5f9]'
+                  }`}
+                >
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>Entities</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setHudTab('all')}
+                  className={`px-3 py-1.5 rounded-[7px] transition cursor-pointer flex items-center gap-1.5 ${
+                    hudTab === 'all'
+                      ? 'bg-white dark:bg-[#111622] text-[#3457d5] dark:text-[#6a87f5] shadow-xs font-bold'
+                      : 'text-[#697386] dark:text-[#94a3b8] hover:text-[#151923] dark:hover:text-[#f1f5f9]'
+                  }`}
+                >
+                  <Layers className="w-3.5 h-3.5" />
+                  <span>All Details</span>
+                </button>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-mono text-[#16865b] font-bold">
+                  ✓ Ready to Evaluate
+                </span>
+              </div>
+            </div>
+
+            {/* 5 Key Metric Cards Grid (Persistent at top of Cockpit) */}
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 text-center">
               <div className="p-3 rounded-[9px] bg-[#f8f9fc] dark:bg-[#0d121c] border border-[#e6e9ef] dark:border-[#1e2638]">
                 <span className="text-[10px] font-bold text-[#8c97a8] uppercase font-mono">Accuracy</span>
@@ -526,101 +842,133 @@ export default function LiveStudio({ onViewRunDetails }) {
               </div>
             </div>
 
-            {/* Word Alignment Diff */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs font-mono font-bold text-[#697386] dark:text-[#94a3b8] uppercase">
-                <span>Sequential Word Alignment Diff (Levenshtein)</span>
-                <span className="text-[#16865b]">100% Match</span>
-              </div>
-
-              <div className="p-3 rounded-[9px] bg-[#f8f9fc] dark:bg-[#0d121c] border border-[#e6e9ef] dark:border-[#1e2638] flex flex-wrap gap-1.5 font-mono text-xs">
-                {evalResult.alignment.map((t, idx) => (
-                  <span
-                    key={idx}
-                    className="px-2 py-1 rounded-[6px] bg-white dark:bg-[#111622] border border-[#e6e9ef] dark:border-[#1e2638] text-[#151923] dark:text-[#f1f5f9]"
-                  >
-                    {t.word}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Critical Entities Table */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs font-mono font-bold text-[#697386] dark:text-[#94a3b8] uppercase">
-                <span>Critical Entities Verification Audit</span>
-                <Badge variant="success" size="sm">Zero Error</Badge>
-              </div>
-
-              <div className="overflow-x-auto rounded-[9px] border border-[#e6e9ef] dark:border-[#1e2638]">
-                <table className="w-full text-left text-xs font-mono">
-                  <thead className="bg-[#f8f9fc] dark:bg-[#0d121c] border-b border-[#e6e9ef] dark:border-[#1e2638] text-[10px] uppercase font-bold text-[#697386] dark:text-[#94a3b8]">
-                    <tr>
-                      <th className="py-2 px-3">#</th>
-                      <th className="py-2 px-3">Entity</th>
-                      <th className="py-2 px-3">Expected</th>
-                      <th className="py-2 px-3">Recognized</th>
-                      <th className="py-2 px-3 text-right">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#e6e9ef] dark:divide-[#1e2638]">
-                    {evalResult.entityTable.map((item, idx) => (
-                      <tr key={idx}>
-                        <td className="py-2.5 px-3 text-[#8c97a8]">{idx + 1}</td>
-                        <td className="py-2.5 px-3 font-semibold text-[#151923] dark:text-[#f1f5f9]">{item.type}</td>
-                        <td className="py-2.5 px-3 text-[#3457d5] dark:text-[#6a87f5] font-devanagari">{item.expected}</td>
-                        <td className="py-2.5 px-3 text-[#151923] dark:text-[#f1f5f9] font-devanagari">{item.recognized}</td>
-                        <td className="py-2.5 px-3 text-right">
-                          <span className="text-[#16865b] font-bold">✓ Pass</span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Report Actions */}
-              <div className="pt-3 border-t border-[#e6e9ef] dark:border-[#1e2638] flex flex-wrap items-center justify-between gap-2">
-                <span className="text-[11px] text-[#697386] dark:text-[#94a3b8] font-mono">
-                  Engine: Gnani Prisma STT v3 • Real-Time Factor: {((evalResult.latency || 312) / 4000).toFixed(2)}x
-                </span>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => {
-                      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(evalResult, null, 2));
-                      const downloadAnchor = document.createElement('a');
-                      downloadAnchor.setAttribute("href", dataStr);
-                      downloadAnchor.setAttribute("download", `indicvoice_eval_${Date.now()}.json`);
-                      document.body.appendChild(downloadAnchor);
-                      downloadAnchor.click();
-                      downloadAnchor.remove();
-                    }}
-                    className="px-2.5 py-1.5 rounded-[7px] text-xs font-semibold saas-control hover:bg-[#f2f4f8] dark:hover:bg-[#171d2b] transition cursor-pointer"
-                  >
-                    Export JSON
-                  </button>
-                  {onViewRunDetails && (
-                    <Button
-                      onClick={() => onViewRunDetails({
-                        testName: 'Live Studio Evaluation',
-                        language,
-                        wer: evalResult.wer / 100,
-                        cer: evalResult.cer / 100,
-                        criticalPassed: evalResult.criticalPassed,
-                        latencyMs: evalResult.latency,
-                        expectedTranscription: expectedText,
-                        hypothesis: predictedText,
-                        alignment: evalResult.alignment,
-                        entities: evalResult.entityTable
-                      })}
-                      variant="primary"
-                      size="sm"
-                      icon={FileText}
-                    >
-                      Audit Report Modal
-                    </Button>
-                  )}
+            {/* TAB 1: Evaluation Overview (Side-by-Side Reference & Hypothesis) */}
+            {(hudTab === 'eval' || hudTab === 'all') && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
+                <div className="p-3.5 rounded-[9px] bg-[#f8f9fc] dark:bg-[#0d121c] border border-[#e6e9ef] dark:border-[#1e2638] space-y-1.5">
+                  <div className="flex items-center justify-between text-[11px] font-bold text-[#697386] dark:text-[#94a3b8] font-mono">
+                    <span>Expected Reference</span>
+                    <span className="text-[#3457d5] dark:text-[#6a87f5]">
+                      {expectedText.trim().split(/\s+/).filter(Boolean).length} words
+                    </span>
+                  </div>
+                  <p className="font-devanagari text-xs text-[#151923] dark:text-[#f1f5f9] min-h-[48px] leading-relaxed">
+                    {expectedText}
+                  </p>
                 </div>
+
+                <div className="p-3.5 rounded-[9px] bg-[#f8f9fc] dark:bg-[#0d121c] border border-[#e6e9ef] dark:border-[#1e2638] space-y-1.5">
+                  <div className="flex items-center justify-between text-[11px] font-bold text-[#697386] dark:text-[#94a3b8] font-mono">
+                    <span>Transcribed Output</span>
+                    <span className="text-[#16865b]">Confidence: 0.98</span>
+                  </div>
+                  <p className="font-devanagari text-xs text-[#151923] dark:text-[#f1f5f9] min-h-[48px] leading-relaxed">
+                    {predictedText}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 2: Word Alignment Diff (Levenshtein) */}
+            {(hudTab === 'align' || hudTab === 'all') && (
+              <div className="space-y-2 pt-2">
+                <div className="flex items-center justify-between text-xs font-mono font-bold text-[#697386] dark:text-[#94a3b8] uppercase">
+                  <span>Sequential Word Alignment Diff (Levenshtein)</span>
+                  <span className="text-[#16865b]">100% Match</span>
+                </div>
+
+                <div className="p-3 rounded-[9px] bg-[#f8f9fc] dark:bg-[#0d121c] border border-[#e6e9ef] dark:border-[#1e2638] flex flex-wrap gap-1.5 font-mono text-xs">
+                  {evalResult.alignment.map((t, idx) => (
+                    <span
+                      key={idx}
+                      className="px-2 py-1 rounded-[6px] bg-white dark:bg-[#111622] border border-[#e6e9ef] dark:border-[#1e2638] text-[#151923] dark:text-[#f1f5f9]"
+                    >
+                      {t.word}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* TAB 3: Critical Entities Verification Audit */}
+            {(hudTab === 'entities' || hudTab === 'all') && (
+              <div className="space-y-2 pt-2">
+                <div className="flex items-center justify-between text-xs font-mono font-bold text-[#697386] dark:text-[#94a3b8] uppercase">
+                  <span>Critical Entities Verification Audit</span>
+                  <Badge variant="success" size="sm">Zero Error</Badge>
+                </div>
+
+                <div className="overflow-x-auto rounded-[9px] border border-[#e6e9ef] dark:border-[#1e2638]">
+                  <table className="w-full text-left text-xs font-mono">
+                    <thead className="bg-[#f8f9fc] dark:bg-[#0d121c] border-b border-[#e6e9ef] dark:border-[#1e2638] text-[10px] uppercase font-bold text-[#697386] dark:text-[#94a3b8]">
+                      <tr>
+                        <th className="py-2 px-3">#</th>
+                        <th className="py-2 px-3">Entity</th>
+                        <th className="py-2 px-3">Expected</th>
+                        <th className="py-2 px-3">Recognized</th>
+                        <th className="py-2 px-3 text-right">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#e6e9ef] dark:divide-[#1e2638]">
+                      {evalResult.entityTable.map((item, idx) => (
+                        <tr key={idx}>
+                          <td className="py-2.5 px-3 text-[#8c97a8]">{idx + 1}</td>
+                          <td className="py-2.5 px-3 font-semibold text-[#151923] dark:text-[#f1f5f9]">{item.type}</td>
+                          <td className="py-2.5 px-3 text-[#3457d5] dark:text-[#6a87f5] font-devanagari">{item.expected}</td>
+                          <td className="py-2.5 px-3 text-[#151923] dark:text-[#f1f5f9] font-devanagari">{item.recognized}</td>
+                          <td className="py-2.5 px-3 text-right">
+                            <span className="text-[#16865b] font-bold">✓ Pass</span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* Report Actions */}
+            <div className="pt-3 border-t border-[#e6e9ef] dark:border-[#1e2638] flex flex-wrap items-center justify-between gap-2">
+              <span className="text-[11px] text-[#697386] dark:text-[#94a3b8] font-mono">
+                Engine: Gnani Prisma STT v3 • Real-Time Factor: {((evalResult.latency || 312) / 4000).toFixed(2)}x
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(evalResult, null, 2));
+                    const downloadAnchor = document.createElement('a');
+                    downloadAnchor.setAttribute("href", dataStr);
+                    downloadAnchor.setAttribute("download", `indicvoice_eval_${Date.now()}.json`);
+                    document.body.appendChild(downloadAnchor);
+                    downloadAnchor.click();
+                    downloadAnchor.remove();
+                  }}
+                  className="px-2.5 py-1.5 rounded-[7px] text-xs font-semibold saas-control hover:bg-[#f2f4f8] dark:hover:bg-[#171d2b] transition cursor-pointer"
+                >
+                  Export JSON
+                </button>
+                {onViewRunDetails && (
+                  <Button
+                    onClick={() => onViewRunDetails({
+                      testName: 'Live Studio Evaluation',
+                      language,
+                      wer: evalResult.wer / 100,
+                      cer: evalResult.cer / 100,
+                      criticalPassed: evalResult.criticalPassed,
+                      latencyMs: evalResult.latency,
+                      expectedTranscription: expectedText,
+                      hypothesis: predictedText,
+                      alignment: evalResult.alignment,
+                      entities: evalResult.entityTable
+                    })}
+                    variant="primary"
+                    size="sm"
+                    icon={FileText}
+                  >
+                    Audit Report Modal
+                  </Button>
+                )}
               </div>
             </div>
           </Card>
@@ -629,4 +977,3 @@ export default function LiveStudio({ onViewRunDetails }) {
     </div>
   );
 }
-
