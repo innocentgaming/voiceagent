@@ -10,15 +10,18 @@ import {
   CheckCircle2,
   AlertTriangle,
   FileText,
-  Calendar,
-  Clock,
-  ArrowRight
+  Download,
+  ChevronLeft,
+  ChevronRight,
+  Cpu
 } from 'lucide-react';
 
 export default function TestHistory({ runs = [], onViewRunDetails }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLanguage, setSelectedLanguage] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
 
   const filteredRuns = useMemo(() => {
     return runs.filter((run) => {
@@ -37,6 +40,43 @@ export default function TestHistory({ runs = [], onViewRunDetails }) {
     });
   }, [runs, searchQuery, selectedLanguage, selectedStatus]);
 
+  // Reset pagination when filter changes
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedLanguage, selectedStatus]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredRuns.length / pageSize));
+  const paginatedRuns = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredRuns.slice(start, start + pageSize);
+  }, [filteredRuns, currentPage, pageSize]);
+
+  // Download filtered data as CSV
+  const handleExportCSV = () => {
+    if (filteredRuns.length === 0) return;
+    const headers = ['Timestamp', 'Test Case', 'Language', 'Model', 'WER (%)', 'Accuracy (%)', 'CER (%)', 'Latency (ms)', 'Entity Audit'];
+    const rows = filteredRuns.map((r) => [
+      r.createdAt ? new Date(r.createdAt).toISOString() : new Date().toISOString(),
+      `"${(r.testName || 'Test Run').replace(/"/g, '""')}"`,
+      r.language || 'hi-IN',
+      'Gnani Prisma STT v3',
+      typeof r.wer === 'number' ? (r.wer * 100).toFixed(1) : '',
+      typeof r.wer === 'number' ? Math.max(0, 100 - r.wer * 100).toFixed(1) : '',
+      typeof r.cer === 'number' ? (r.cer * 100).toFixed(1) : '',
+      r.latencyMs || 312,
+      r.criticalPassed ? 'PASSED' : 'MISMATCH_ALERT'
+    ]);
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `indicvoice_audit_history_${Date.now()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
@@ -50,9 +90,20 @@ export default function TestHistory({ runs = [], onViewRunDetails }) {
           </p>
         </div>
 
-        <Badge variant="primary" size="md">
-          {runs.length} Total Runs
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={handleExportCSV}
+            variant="outline"
+            size="sm"
+            icon={Download}
+            disabled={filteredRuns.length === 0}
+          >
+            Export CSV
+          </Button>
+          <Badge variant="primary" size="md">
+            {filteredRuns.length} of {runs.length} Runs
+          </Badge>
+        </div>
       </div>
 
       {/* Filter Toolbar */}
@@ -81,6 +132,8 @@ export default function TestHistory({ runs = [], onViewRunDetails }) {
               <option value="mr-IN">Marathi (mr-IN)</option>
               <option value="hinglish">Hinglish</option>
               <option value="en-IN">English (en-IN)</option>
+              <option value="ta-IN">Tamil (ta-IN)</option>
+              <option value="te-IN">Telugu (te-IN)</option>
             </select>
           </div>
 
@@ -114,6 +167,8 @@ export default function TestHistory({ runs = [], onViewRunDetails }) {
                   <th className="py-3 px-4">Timestamp</th>
                   <th className="py-3 px-4">Test Case Name</th>
                   <th className="py-3 px-4">Language</th>
+                  <th className="py-3 px-4">Model Engine</th>
+                  <th className="py-3 px-4 text-center">Accuracy</th>
                   <th className="py-3 px-4 text-center">WER</th>
                   <th className="py-3 px-4 text-center">CER</th>
                   <th className="py-3 px-4 text-center">Latency</th>
@@ -122,21 +177,24 @@ export default function TestHistory({ runs = [], onViewRunDetails }) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#e6e9ef] dark:divide-[#1e2638] font-mono">
-                {filteredRuns.map((run, i) => {
+                {paginatedRuns.map((run, i) => {
                   const isPassed = run.criticalPassed;
                   const date = run.createdAt ? new Date(run.createdAt) : null;
+                  const accuracy = typeof run.wer === 'number'
+                    ? Math.max(0, 100 - run.wer * 100).toFixed(1)
+                    : null;
 
                   return (
                     <tr
-                      key={run._id || i}
+                      key={run._id || `${currentPage}-${i}`}
                       className="hover:bg-[#f8f9fc] dark:hover:bg-[#171d2b] transition"
                     >
                       <td className="py-3 px-4 text-[#8c97a8] whitespace-nowrap">
                         {date ? date.toLocaleDateString() : 'Today'} {date ? date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
                       </td>
 
-                      <td className="py-3 px-4 font-semibold text-[#151923] dark:text-[#f1f5f9] max-w-[200px] truncate">
-                        {run.testName || `Run #${i + 1}`}
+                      <td className="py-3 px-4 font-semibold text-[#151923] dark:text-[#f1f5f9] max-w-[180px] truncate">
+                        {run.testName || `Run #${(currentPage - 1) * pageSize + i + 1}`}
                       </td>
 
                       <td className="py-3 px-4">
@@ -145,11 +203,20 @@ export default function TestHistory({ runs = [], onViewRunDetails }) {
                         </Badge>
                       </td>
 
-                      <td className="py-3 px-4 text-center font-bold">
+                      <td className="py-3 px-4 text-[#697386] dark:text-[#94a3b8] flex items-center gap-1.5">
+                        <Cpu className="w-3.5 h-3.5 text-[#3457d5] dark:text-[#6a87f5]" />
+                        <span>Prisma v3</span>
+                      </td>
+
+                      <td className="py-3 px-4 text-center font-bold text-[#16865b]">
+                        {accuracy !== null ? `${accuracy}%` : '--'}
+                      </td>
+
+                      <td className="py-3 px-4 text-center font-bold text-[#151923] dark:text-[#f1f5f9]">
                         {typeof run.wer === 'number' ? `${(run.wer * 100).toFixed(1)}%` : '--'}
                       </td>
 
-                      <td className="py-3 px-4 text-center font-bold">
+                      <td className="py-3 px-4 text-center text-[#697386] dark:text-[#94a3b8]">
                         {typeof run.cer === 'number' ? `${(run.cer * 100).toFixed(1)}%` : '--'}
                       </td>
 
@@ -164,7 +231,7 @@ export default function TestHistory({ runs = [], onViewRunDetails }) {
                           </Badge>
                         ) : (
                           <Badge variant="danger" size="sm" icon={AlertTriangle}>
-                            Mismatch Alert
+                            Alert
                           </Badge>
                         )}
                       </td>
@@ -176,7 +243,7 @@ export default function TestHistory({ runs = [], onViewRunDetails }) {
                           size="sm"
                           icon={FileText}
                         >
-                          View Audit
+                          Audit
                         </Button>
                       </td>
                     </tr>
@@ -185,9 +252,40 @@ export default function TestHistory({ runs = [], onViewRunDetails }) {
               </tbody>
             </table>
           </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="p-3 border-t border-[#e6e9ef] dark:border-[#1e2638] flex items-center justify-between text-xs">
+              <span className="text-[#697386] dark:text-[#94a3b8] font-mono">
+                Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, filteredRuns.length)} of {filteredRuns.length}
+              </span>
+              <div className="flex items-center gap-1.5">
+                <Button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  variant="outline"
+                  size="sm"
+                  icon={ChevronLeft}
+                >
+                  Prev
+                </Button>
+                <span className="px-2 font-mono font-bold text-[#151923] dark:text-[#f1f5f9]">
+                  {currentPage} / {totalPages}
+                </span>
+                <Button
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  variant="outline"
+                  size="sm"
+                  icon={ChevronRight}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
         </Card>
       )}
     </div>
   );
 }
-

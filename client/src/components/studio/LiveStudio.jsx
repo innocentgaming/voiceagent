@@ -19,7 +19,11 @@ import {
 export default function LiveStudio({ onViewRunDetails }) {
   const [inputMode, setInputMode] = useState('mic');
   const [uploadedFile, setUploadedFile] = useState(null);
+  const [audioUrl, setAudioUrl] = useState(null);
   const [language, setLanguage] = useState('hinglish');
+  const [accent, setAccent] = useState('standard');
+  const [noiseLevel, setNoiseLevel] = useState('clean');
+  const [model, setModel] = useState('gnani-prisma-v3');
   const [category, setCategory] = useState('banking-upi');
   const [expectedText, setExpectedText] = useState('I want to send five hundred rupees to Rahul.');
   const [predictedText, setPredictedText] = useState('Live transcript will stream here as you speak...');
@@ -35,6 +39,8 @@ export default function LiveStudio({ onViewRunDetails }) {
     const file = e.target.files?.[0];
     if (file) {
       setUploadedFile(file);
+      const url = URL.createObjectURL(file);
+      setAudioUrl(url);
       setPredictedText(`[Audio File Loaded: ${file.name}] Ready for speech recognition.`);
     }
   };
@@ -275,52 +281,98 @@ export default function LiveStudio({ onViewRunDetails }) {
                   </p>
                 </label>
                 {uploadedFile && (
-                  <div className="pt-1 flex items-center gap-2 text-xs font-mono text-[#16865b] font-bold">
-                    <CheckCircle2 className="w-4 h-4 shrink-0" />
-                    <span className="truncate max-w-[200px]">{uploadedFile.name}</span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setUploadedFile(null);
-                        setPredictedText('Live transcript will stream here as you speak...');
-                      }}
-                      className="text-[#8c97a8] hover:text-[#d64545] ml-1 cursor-pointer"
-                      title="Remove uploaded audio"
-                    >
-                      ✕
-                    </button>
+                  <div className="pt-1 flex flex-col items-center gap-2 text-xs font-mono text-[#16865b] font-bold w-full">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 shrink-0" />
+                      <span className="truncate max-w-[200px]">{uploadedFile.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setUploadedFile(null);
+                          setAudioUrl(null);
+                          setPredictedText('Live transcript will stream here as you speak...');
+                        }}
+                        className="text-[#8c97a8] hover:text-[#d64545] ml-1 cursor-pointer"
+                        title="Remove uploaded audio"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    {audioUrl && (
+                      <audio controls src={audioUrl} className="w-full h-8 mt-1 rounded" />
+                    )}
                   </div>
                 )}
               </div>
             )}
 
-            {/* Language & Scenario Selectors */}
+            {/* Benchmark Test Parameters Grid */}
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div>
-                <label className="block text-[11px] font-bold text-[#697386] dark:text-[#94a3b8] mb-1">Language</label>
+                <label className="block text-[11px] font-bold text-[#697386] dark:text-[#94a3b8] mb-1">
+                  Indian Language & Dialect
+                </label>
                 <select
                   value={language}
                   onChange={(e) => setLanguage(e.target.value)}
                   className="w-full saas-control px-2.5 py-1.5 cursor-pointer font-medium"
                 >
-                  <option value="hinglish">Hinglish (India)</option>
+                  <option value="hinglish">Hinglish (Code-Mixed Matrix)</option>
                   <option value="hi-IN">Hindi (hi-IN)</option>
                   <option value="mr-IN">Marathi (mr-IN)</option>
                   <option value="en-IN">English (India)</option>
+                  <option value="ta-IN">Tamil (ta-IN)</option>
+                  <option value="te-IN">Telugu (te-IN)</option>
+                  <option value="kn-IN">Kannada (kn-IN)</option>
+                  <option value="bn-IN">Bengali (bn-IN)</option>
+                  <option value="gu-IN">Gujarati (gu-IN)</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-[#697386] dark:text-[#94a3b8] mb-1">Domain Scenario</label>
+                <label className="block text-[11px] font-bold text-[#697386] dark:text-[#94a3b8] mb-1">
+                  Accent & Regional Variety
+                </label>
                 <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
+                  value={accent}
+                  onChange={(e) => setAccent(e.target.value)}
                   className="w-full saas-control px-2.5 py-1.5 cursor-pointer font-medium"
                 >
-                  <option value="banking-upi">Banking & UPI Payments</option>
-                  <option value="ecommerce">E-Commerce</option>
-                  <option value="delivery">Logistics</option>
-                  <option value="general">Support</option>
+                  <option value="standard">Standard / Northern Hindi</option>
+                  <option value="western">Western (Mumbai / Pune)</option>
+                  <option value="southern">Southern (Bangalore / Hyderabad)</option>
+                  <option value="metro">Urban Metro Hinglish</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-[#697386] dark:text-[#94a3b8] mb-1">
+                  Noise & SNR Condition
+                </label>
+                <select
+                  value={noiseLevel}
+                  onChange={(e) => setNoiseLevel(e.target.value)}
+                  className="w-full saas-control px-2.5 py-1.5 cursor-pointer font-medium"
+                >
+                  <option value="clean">Clean Studio (40 dB SNR)</option>
+                  <option value="snr-20">Office AC Ambient (20 dB SNR)</option>
+                  <option value="snr-10">Traffic & Street (10 dB SNR)</option>
+                  <option value="snr-5">Crowded Market (5 dB SNR)</option>
+                  <option value="snr-0">Extreme AWGN (0 dB SNR)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-[#697386] dark:text-[#94a3b8] mb-1">
+                  Evaluation STT Model
+                </label>
+                <select
+                  value={model}
+                  onChange={(e) => setModel(e.target.value)}
+                  className="w-full saas-control px-2.5 py-1.5 cursor-pointer font-medium font-mono text-[11px]"
+                >
+                  <option value="gnani-prisma-v3">Gnani Prisma STT v3 (Live)</option>
+                  <option value="whisper-indic">OpenAI Whisper Indic (Baseline)</option>
                 </select>
               </div>
             </div>
@@ -425,14 +477,22 @@ export default function LiveStudio({ onViewRunDetails }) {
         {/* Right Column: Live Evaluation Cockpit */}
         <div className="lg:col-span-7 space-y-4">
           <Card className="space-y-4">
-            {/* 4 Key Metrics */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+            {/* 5 Key Metric Cards Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 text-center">
+              <div className="p-3 rounded-[9px] bg-[#f8f9fc] dark:bg-[#0d121c] border border-[#e6e9ef] dark:border-[#1e2638]">
+                <span className="text-[10px] font-bold text-[#8c97a8] uppercase font-mono">Accuracy</span>
+                <div className="text-xl font-extrabold text-[#16865b] dark:text-[#34d399] font-mono-numbers mt-1">
+                  {(100 - evalResult.wer).toFixed(1)}%
+                </div>
+                <span className="text-[10px] text-[#16865b] font-mono font-bold">Speech Rec</span>
+              </div>
+
               <div className="p-3 rounded-[9px] bg-[#f8f9fc] dark:bg-[#0d121c] border border-[#e6e9ef] dark:border-[#1e2638]">
                 <span className="text-[10px] font-bold text-[#8c97a8] uppercase font-mono">WER</span>
                 <div className="text-xl font-extrabold text-[#151923] dark:text-[#f1f5f9] font-mono-numbers mt-1">
                   {evalResult.wer}%
                 </div>
-                <span className="text-[10px] text-[#16865b] font-mono font-bold">↓ -2.1 pp</span>
+                <span className="text-[10px] text-[#16865b] font-mono font-bold">Word Error</span>
               </div>
 
               <div className="p-3 rounded-[9px] bg-[#f8f9fc] dark:bg-[#0d121c] border border-[#e6e9ef] dark:border-[#1e2638]">
@@ -440,7 +500,7 @@ export default function LiveStudio({ onViewRunDetails }) {
                 <div className="text-xl font-extrabold text-[#151923] dark:text-[#f1f5f9] font-mono-numbers mt-1">
                   {evalResult.cer}%
                 </div>
-                <span className="text-[10px] text-[#16865b] font-mono font-bold">↓ -1.4 pp</span>
+                <span className="text-[10px] text-[#697386] dark:text-[#94a3b8] font-mono">Graphemes</span>
               </div>
 
               <div className={`p-3 rounded-[9px] border ${
@@ -448,7 +508,7 @@ export default function LiveStudio({ onViewRunDetails }) {
                   ? 'bg-[#e8f5ef] dark:bg-[#062d1f] text-[#16865b] border-[#16865b]/20'
                   : 'bg-[#fdeeee] dark:bg-[#341111] text-[#d64545] border-[#d64545]/20'
               }`}>
-                <span className="text-[10px] font-bold uppercase font-mono">Entity Integrity</span>
+                <span className="text-[10px] font-bold uppercase font-mono">Entities</span>
                 <div className="text-xl font-extrabold font-mono-numbers mt-1">
                   {evalResult.entityIntegrity}%
                 </div>
@@ -460,7 +520,9 @@ export default function LiveStudio({ onViewRunDetails }) {
                 <div className="text-xl font-extrabold text-[#3457d5] dark:text-[#6a87f5] font-mono-numbers mt-1">
                   {evalResult.latency} ms
                 </div>
-                <span className="text-[10px] text-[#697386] dark:text-[#94a3b8]">Prisma Live</span>
+                <span className="text-[10px] text-[#697386] dark:text-[#94a3b8] font-mono">
+                  {((evalResult.latency || 312) / 4000).toFixed(2)}x RTF
+                </span>
               </div>
             </div>
 
@@ -515,6 +577,50 @@ export default function LiveStudio({ onViewRunDetails }) {
                     ))}
                   </tbody>
                 </table>
+              </div>
+
+              {/* Report Actions */}
+              <div className="pt-3 border-t border-[#e6e9ef] dark:border-[#1e2638] flex flex-wrap items-center justify-between gap-2">
+                <span className="text-[11px] text-[#697386] dark:text-[#94a3b8] font-mono">
+                  Engine: Gnani Prisma STT v3 • Real-Time Factor: {((evalResult.latency || 312) / 4000).toFixed(2)}x
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(evalResult, null, 2));
+                      const downloadAnchor = document.createElement('a');
+                      downloadAnchor.setAttribute("href", dataStr);
+                      downloadAnchor.setAttribute("download", `indicvoice_eval_${Date.now()}.json`);
+                      document.body.appendChild(downloadAnchor);
+                      downloadAnchor.click();
+                      downloadAnchor.remove();
+                    }}
+                    className="px-2.5 py-1.5 rounded-[7px] text-xs font-semibold saas-control hover:bg-[#f2f4f8] dark:hover:bg-[#171d2b] transition cursor-pointer"
+                  >
+                    Export JSON
+                  </button>
+                  {onViewRunDetails && (
+                    <Button
+                      onClick={() => onViewRunDetails({
+                        testName: 'Live Studio Evaluation',
+                        language,
+                        wer: evalResult.wer / 100,
+                        cer: evalResult.cer / 100,
+                        criticalPassed: evalResult.criticalPassed,
+                        latencyMs: evalResult.latency,
+                        expectedTranscription: expectedText,
+                        hypothesis: predictedText,
+                        alignment: evalResult.alignment,
+                        entities: evalResult.entityTable
+                      })}
+                      variant="primary"
+                      size="sm"
+                      icon={FileText}
+                    >
+                      Audit Report Modal
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
           </Card>

@@ -10,6 +10,8 @@ import CreateProjectModal from './components/CreateProjectModal';
 import CreateTestCaseModal from './components/CreateTestCaseModal';
 import AuthModal from './components/auth/AuthModal';
 import AnalyticsCharts from './components/dashboard/AnalyticsCharts';
+import SettingsPage from './components/settings/SettingsPage';
+import Toast from './components/common/Toast';
 import Card from './components/common/Card';
 import Badge from './components/common/Badge';
 import Button from './components/common/Button';
@@ -84,6 +86,18 @@ export default function App() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState('login');
 
+  // Enterprise Toast Notification Center
+  const [toasts, setToasts] = useState([]);
+
+  const showToast = (message, type = 'info', duration = 3500) => {
+    const id = Date.now() + Math.random().toString(36).substring(2, 5);
+    setToasts((prev) => [...prev, { id, message, type, duration }]);
+  };
+
+  const dismissToast = (id) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  };
+
   // Modals & Inspection
   const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
   const [isCreateTestOpen, setIsCreateTestOpen] = useState(false);
@@ -134,6 +148,7 @@ export default function App() {
     localStorage.removeItem('indic_token');
     localStorage.removeItem('indic_user');
     setUser(null);
+    showToast('Signed out of session', 'info');
   };
 
   const handleOpenAuth = (mode = 'login') => {
@@ -144,6 +159,7 @@ export default function App() {
   const handleAuthSuccess = (authenticatedUser) => {
     setUser(authenticatedUser);
     setIsAuthModalOpen(false);
+    showToast(`Welcome back, ${authenticatedUser.name || 'Aditya'}!`, 'success');
   };
 
   // Initial load
@@ -220,9 +236,11 @@ export default function App() {
         if (data.project) {
           setActiveProjectId(data.project._id);
         }
+        showToast('Demo benchmark dataset seeded successfully', 'success');
       }
     } catch (err) {
       console.error('Failed to seed data:', err);
+      showToast('Failed to seed demo data', 'error');
     } finally {
       setIsSeeding(false);
     }
@@ -243,9 +261,13 @@ export default function App() {
         await fetchDashboardData();
         setActiveProjectId(data.data._id);
         setActiveTab('workspace');
+        showToast(`Project "${projectData.name}" created successfully`, 'success');
+      } else {
+        showToast(data.message || 'Failed to create project', 'error');
       }
     } catch (err) {
       console.error('Failed to create project:', err);
+      showToast('Network error while creating project', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -278,9 +300,13 @@ export default function App() {
         setIsCreateTestOpen(false);
         fetchProjectDetails(activeProjectId);
         fetchDashboardData();
+        showToast(`Test case "${testData.name}" registered`, 'success');
+      } else {
+        showToast(data.message || 'Failed to add test case', 'error');
       }
     } catch (err) {
       console.error('Failed to create test case:', err);
+      showToast('Network error while saving test case', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -293,8 +319,10 @@ export default function App() {
       await fetch(`/api/tests/${testId}`, { method: 'DELETE' });
       fetchProjectDetails(activeProjectId);
       fetchDashboardData();
+      showToast('Test case deleted', 'info');
     } catch (err) {
       console.error('Failed to delete test:', err);
+      showToast('Failed to delete test case', 'error');
     }
   };
 
@@ -308,9 +336,13 @@ export default function App() {
         fetchProjectDetails(activeProjectId);
         fetchDashboardData();
         setInspectedRun(data.data.run);
+        showToast('Evaluation run completed with audit report', 'success');
+      } else {
+        showToast(data.message || 'Evaluation run failed', 'error');
       }
     } catch (err) {
       console.error('Failed to run test:', err);
+      showToast('Network error while evaluating audio', 'error');
     } finally {
       setRunningTestId(null);
     }
@@ -319,9 +351,12 @@ export default function App() {
   // Run All Test Cases in project
   const handleRunAllTests = async (testsToRun) => {
     setIsRunningAll(true);
+    let successCount = 0;
     for (const test of testsToRun) {
       try {
-        await fetch(`/api/tests/${test._id}/run`, { method: 'POST' });
+        const res = await fetch(`/api/tests/${test._id}/run`, { method: 'POST' });
+        const d = await res.json();
+        if (d.success) successCount++;
       } catch (err) {
         console.error('Test run failed:', err);
       }
@@ -329,6 +364,7 @@ export default function App() {
     await fetchProjectDetails(activeProjectId);
     await fetchDashboardData();
     setIsRunningAll(false);
+    showToast(`Batch execution finished: ${successCount}/${testsToRun.length} passed`, 'success');
   };
 
   // View Detailed Run Report
@@ -448,47 +484,13 @@ export default function App() {
 
       {/* View 8: Settings & Engine Status */}
       {activeTab === 'settings' && (
-        <div className="space-y-6 max-w-3xl">
-          <div className="pb-4 border-b border-[#e6e9ef] dark:border-[#1e2638]">
-            <h1 className="text-xl sm:text-2xl font-extrabold text-[#151923] dark:text-[#f1f5f9] tracking-tight">
-              Platform Settings & Engine Configuration
-            </h1>
-            <p className="mt-1 text-xs sm:text-sm text-[#697386] dark:text-[#94a3b8]">
-              Manage STT provider credentials, evaluation thresholds, and environment endpoints.
-            </p>
-          </div>
-
-          <Card className="space-y-4">
-            <h3 className="font-bold text-sm text-[#151923] dark:text-[#f1f5f9] flex items-center gap-2">
-              <Key className="w-4 h-4 text-[#3457d5] dark:text-[#6a87f5]" />
-              <span>Gnani Prisma / Vachana AI Credentials</span>
-            </h3>
-            <div className="space-y-3 text-xs font-mono">
-              <div>
-                <label className="block text-[#8c97a8] mb-1">STT Endpoint</label>
-                <input
-                  type="text"
-                  readOnly
-                  value="https://api.vachana.ai/stt/v3"
-                  className="w-full saas-control px-3 py-2 bg-[#f8f9fc] dark:bg-[#0d121c]"
-                />
-              </div>
-              <div>
-                <label className="block text-[#8c97a8] mb-1">API Authentication Key</label>
-                <input
-                  type="text"
-                  readOnly
-                  value="vach_1ytE2CY5X2DwVevuF9wx1NPQj1atg0...08c69bad"
-                  className="w-full saas-control px-3 py-2 bg-[#f8f9fc] dark:bg-[#0d121c]"
-                />
-              </div>
-              <div className="flex items-center gap-2 text-[#16865b] font-bold text-xs">
-                <CheckCircle2 className="w-4 h-4" />
-                <span>Verified 200 OK • Live Connection Active</span>
-              </div>
-            </div>
-          </Card>
-        </div>
+        <SettingsPage
+          user={user}
+          theme={theme}
+          onToggleTheme={toggleTheme}
+          onOpenAuthModal={handleOpenAuth}
+          onShowToast={showToast}
+        />
       )}
 
       {/* Modals */}
@@ -523,6 +525,9 @@ export default function App() {
         onAuthSuccess={handleAuthSuccess}
         initialMode={authModalMode}
       />
+
+      {/* Enterprise Toast Notifications */}
+      <Toast toasts={toasts} onDismiss={dismissToast} />
     </AppLayout>
   );
 }
