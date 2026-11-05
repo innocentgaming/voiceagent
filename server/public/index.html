@@ -56,62 +56,74 @@
       font-feature-settings: 'tnum' on, 'zero' on;
     }
 
-    /* Google Light Palette (Material 3) */
+    /* Enterprise Dark Palette (IndicVoice Lab Studio) */
+    html.dark body {
+      background-color: #0b0d14;
+      color: #e2e8f0;
+    }
+    html.dark .g-card {
+      background-color: #121622;
+      border-color: #1f2538;
+      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5), inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+    }
+    html.dark .g-subtle {
+      background-color: #0e111a;
+      border-color: #1f2538;
+      color: #94a3b8;
+    }
+    html.dark .g-header {
+      background-color: rgba(11, 13, 20, 0.92);
+      border-color: #1f2538;
+    }
+    html.dark .g-input {
+      background-color: #0e111a;
+      border-color: #1f2538;
+      color: #f1f5f9;
+    }
+    html.dark .g-input:focus {
+      border-color: #a855f7;
+      box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.25);
+    }
+
+    /* Modern Research Console Light Palette */
     html.light body {
-      background-color: #f8f9fa;
-      color: #202124;
+      background-color: #f8fafc;
+      color: #0f172a;
     }
     html.light .g-card {
       background-color: #ffffff;
-      border-color: #dadce0;
-      box-shadow: 0 1px 3px 0 rgba(60,64,67,0.08), 0 1px 2px 0 rgba(60,64,67,0.06);
+      border-color: #e2e8f0;
+      box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.05);
     }
     html.light .g-subtle {
-      background-color: #f1f3f4;
-      border-color: #dadce0;
-      color: #3c4043;
+      background-color: #f1f5f9;
+      border-color: #e2e8f0;
+      color: #475569;
     }
     html.light .g-header {
-      background-color: rgba(255, 255, 255, 0.95);
-      border-color: #dadce0;
+      background-color: rgba(255, 255, 255, 0.92);
+      border-color: #e2e8f0;
     }
     html.light .g-input {
       background-color: #ffffff;
-      border-color: #dadce0;
-      color: #202124;
+      border-color: #cbd5e1;
+      color: #0f172a;
     }
     html.light .g-input:focus {
-      border-color: #1a73e8;
-      box-shadow: 0 0 0 2px rgba(26,115,232,0.2);
+      border-color: #7c3aed;
+      box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.2);
     }
 
-    /* Google Dark Palette (Gemini Studio) */
-    html.dark body {
-      background-color: #131314;
-      color: #e3e3e3;
+    /* Soundwave Ribbon Animations */
+    @keyframes pulse-purple {
+      0%, 100% { box-shadow: 0 0 20px 2px rgba(168, 85, 247, 0.4); }
+      50% { box-shadow: 0 0 35px 8px rgba(168, 85, 247, 0.7); }
     }
-    html.dark .g-card {
-      background-color: #1e1f20;
-      border-color: #444746;
-      box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.04);
+    .mic-glow-anim {
+      animation: pulse-purple 2.5s infinite ease-in-out;
     }
-    html.dark .g-subtle {
-      background-color: #131314;
-      border-color: #444746;
-      color: #c4c7c5;
-    }
-    html.dark .g-header {
-      background-color: rgba(19, 19, 20, 0.95);
-      border-color: #444746;
-    }
-    html.dark .g-input {
-      background-color: #131314;
-      border-color: #444746;
-      color: #e3e3e3;
-    }
-    html.dark .g-input:focus {
-      border-color: #8ab4f8;
-      box-shadow: 0 0 0 2px rgba(138,180,248,0.25);
+    .hud-bar {
+      transition: height 0.08s ease-in-out;
     }
 
     /* Google Glow Animation */
@@ -128,419 +140,632 @@
     ::-webkit-scrollbar-thumb:hover { background: #80868b; }
   </style>
 </head>
-<body class="min-h-screen flex flex-col antialiased selection:bg-blue-500 selection:text-white">
+<body class="min-h-screen flex antialiased selection:bg-purple-600 selection:text-white bg-[#0B0D14] text-[#E2E8F0]">
 
   <!-- Toast Notification -->
-  <div id="toast" class="fixed top-5 right-5 z-50 transform transition-all duration-300 opacity-0 translate-y-[-20px] pointer-events-none bg-slate-900 border border-slate-700 text-slate-100 px-4 py-2.5 rounded-2xl shadow-2xl flex items-center gap-2.5 text-xs font-semibold"></div>
+  <div id="toast" class="fixed top-5 right-5 z-50 transform transition-all duration-300 opacity-0 translate-y-[-20px] pointer-events-none bg-slate-900 border border-purple-500/40 text-slate-100 px-4 py-2.5 rounded-2xl shadow-2xl flex items-center gap-2.5 text-xs font-semibold"></div>
 
-  <!-- Google-Style Top App Header -->
-  <header class="g-header border-b backdrop-blur-md sticky top-0 z-40 transition-colors">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-      
-      <!-- Brand & Project Switcher -->
-      <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-2xl bg-white shadow-md flex items-center justify-center p-1.5 shrink-0 border border-slate-200 dark:border-slate-800">
-          <!-- Google 4-Color Waveform Icon -->
-          <svg viewBox="0 0 24 24" class="w-full h-full">
-            <path fill="#4285F4" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9v-4h2v4zm0-6H9V8h2v2zm4 6h-2v-6h2v6zm0-8h-2V6h2v2z"/>
+  <!-- ======================================================== -->
+  <!-- LEFT NAVIGATION SIDEBAR (Enterprise Studio Cockpit)       -->
+  <!-- ======================================================== -->
+  <aside class="w-64 shrink-0 border-r border-[#1F2538] bg-[#0E111C]/95 backdrop-blur-xl min-h-screen flex flex-col justify-between p-4 sticky top-0 h-screen z-30 hidden md:flex">
+    
+    <div class="space-y-6">
+      <!-- App Brand & Platform Header -->
+      <div class="flex items-center gap-3 px-2 py-1">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-700 via-indigo-600 to-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.35)] flex items-center justify-center p-2 shrink-0">
+          <!-- Sinuous Soundwave SVG -->
+          <svg viewBox="0 0 24 24" class="w-full h-full text-white" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 10v4M6 6v12M10 3v18M14 7v10M18 5v14M22 10v4"/>
           </svg>
         </div>
         <div>
-          <div class="flex items-center gap-2">
-            <span class="font-extrabold text-base tracking-tight">IndicVoice Lab</span>
-            <span class="text-[10px] font-bold uppercase tracking-wider bg-blue-500/10 text-blue-500 dark:text-blue-400 border border-blue-500/30 px-2 py-0.5 rounded-full font-mono">
-              AI Speech Studio
-            </span>
+          <div class="flex items-center gap-1.5">
+            <span class="font-extrabold text-base tracking-tight text-white">IndicVoiceLab</span>
           </div>
-          <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-            <span>Project:</span>
-            <select id="project-selector" onchange="switchProject(this.value)" class="g-subtle border rounded-lg px-2 py-0.5 text-xs font-semibold focus:outline-none cursor-pointer">
-              <!-- Dynamically populated -->
-            </select>
-            <button onclick="openModal('create-project-modal')" class="text-blue-500 hover:text-blue-400 font-bold text-xs">+ New Project</button>
-          </div>
+          <div class="text-[10px] font-bold text-purple-400 font-mono tracking-wider">AI Speech Platform</div>
         </div>
       </div>
 
-      <!-- Live Engine Telemetry & Header Controls -->
-      <div class="flex items-center gap-2 sm:gap-3">
+      <!-- Navigation Section: STUDIO -->
+      <div class="space-y-1">
+        <div class="px-3 text-[10px] font-bold tracking-widest uppercase text-slate-500 font-mono">Studio</div>
         
-        <!-- Google-style Engine Badge -->
-        <div class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full g-subtle border text-xs">
-          <span class="flex h-2 w-2 relative">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-          </span>
-          <span class="font-medium text-slate-600 dark:text-slate-400">Prisma Engine:</span>
-          <span class="text-emerald-500 font-mono font-bold">Online</span>
-        </div>
-
-        <!-- Start Fresh (Clean Slate) Button -->
-        <button onclick="clearAllData()" title="Wipe all demo/mock data and start with an empty clean workspace" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full g-subtle border hover:opacity-80 text-xs font-semibold transition cursor-pointer text-slate-500 hover:text-rose-500">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-          <span class="hidden sm:inline">Start Fresh</span>
+        <button id="side-btn-studio" onclick="switchTab('studio')" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-bold bg-purple-900/40 text-purple-200 border border-purple-500/40 shadow-[0_0_15px_rgba(168,85,247,0.15)] transition cursor-pointer">
+          <span class="w-2 h-2 rounded-full bg-purple-400 animate-pulse"></span>
+          <span>Live Evaluation</span>
         </button>
 
-        <!-- Benchmark Presets Button -->
-        <button onclick="seedBenchmarks()" title="Load Indian Voice Benchmark scenarios (Rahul vs Rohan, 500 vs 5000)" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full g-subtle border hover:opacity-80 text-xs font-semibold transition cursor-pointer text-amber-500">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-          <span class="hidden sm:inline">Benchmarks</span>
+        <button id="side-btn-arena" onclick="switchTab('arena')" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800/40 border border-transparent transition cursor-pointer">
+          <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          <span>Model Arena</span>
+        </button>
+
+        <button id="side-btn-runs" onclick="seedBenchmarks()" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800/40 border border-transparent transition cursor-pointer">
+          <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          <span>Benchmark Runs</span>
+        </button>
+
+        <button id="side-btn-suite" onclick="switchTab('suite')" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800/40 border border-transparent transition cursor-pointer">
+          <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+          <span>Test Suite</span>
+        </button>
+      </div>
+
+      <!-- Navigation Section: ANALYTICS -->
+      <div class="space-y-1">
+        <div class="px-3 text-[10px] font-bold tracking-widest uppercase text-slate-500 font-mono">Analytics</div>
+
+        <button id="side-btn-leaderboard" onclick="switchTab('leaderboard')" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800/40 border border-transparent transition cursor-pointer">
+          <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span>Leaderboard</span>
+        </button>
+
+        <button id="side-btn-history" onclick="switchTab('history')" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800/40 border border-transparent transition cursor-pointer">
+          <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span>Evaluation Log</span>
+        </button>
+
+        <button id="side-btn-projects" onclick="openModal('create-project-modal')" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800/40 border border-transparent transition cursor-pointer">
+          <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+          <span>Projects</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Bottom Promo & Profile Cards -->
+    <div class="space-y-3 pt-4 border-t border-[#1F2538]">
+      
+      <!-- Promo Card -->
+      <div class="g-card border rounded-2xl p-3.5 space-y-2 relative overflow-hidden bg-gradient-to-br from-purple-950/30 to-indigo-950/20">
+        <div class="flex items-center gap-2 text-purple-400">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+        </div>
+        <div class="font-bold text-xs text-slate-200">Build & benchmark voice agents for India</div>
+        <div class="text-[11px] text-slate-400 leading-snug">Evaluate accuracy, latency and robustness across Indian languages.</div>
+        <a href="https://github.com/innocentgaming/voiceagent" target="_blank" class="inline-flex items-center gap-1 text-[11px] font-bold text-purple-400 hover:text-purple-300 pt-1">
+          <span>Read the Docs</span>
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+        </a>
+      </div>
+
+      <!-- User Profile Pill -->
+      <div class="flex items-center justify-between p-2 rounded-xl g-subtle border">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 text-white font-bold text-xs flex items-center justify-center font-mono">
+            NK
+          </div>
+          <div class="leading-tight">
+            <div class="text-xs font-bold text-slate-200">Nayan Khandelwal</div>
+            <div class="text-[10px] text-slate-400 font-mono">Researcher</div>
+          </div>
+        </div>
+        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+      </div>
+
+    </div>
+
+  </aside>
+
+  <!-- ======================================================== -->
+  <!-- MAIN WORKSPACE & TOP BAR                                  -->
+  <!-- ======================================================== -->
+  <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+
+    <!-- Top Navigation Bar -->
+    <header class="g-header border-b backdrop-blur-md sticky top-0 z-40 px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+      
+      <!-- Project Selector & Mobile Sidebar Trigger -->
+      <div class="flex items-center gap-3">
+        <!-- Mobile Menu Toggle Button -->
+        <button onclick="toggleMobileSidebar()" class="md:hidden p-2 rounded-xl g-subtle border text-slate-400">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-semibold text-slate-400">Project</span>
+          <div class="flex items-center gap-1.5 g-subtle border rounded-xl px-2.5 py-1 text-xs">
+            <svg class="w-3.5 h-3.5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+            <select id="project-selector" onchange="switchProject(this.value)" class="bg-transparent font-semibold focus:outline-none cursor-pointer text-slate-200">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+          <button onclick="openModal('create-project-modal')" class="text-purple-400 hover:text-purple-300 font-bold text-xs ml-1">+ New</button>
+        </div>
+      </div>
+
+      <!-- Right Header Actions (Languages, Theme, Run Benchmark) -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        
+        <!-- Language Switcher Pill Badges -->
+        <div class="hidden sm:flex items-center p-0.5 rounded-full g-subtle border text-xs font-semibold">
+          <button onclick="changeSpeechLang('hi-IN')" id="pill-lang-hi" class="px-3 py-1 rounded-full text-slate-400 hover:text-slate-200 transition">Hindi</button>
+          <button onclick="changeSpeechLang('mr-IN')" id="pill-lang-mr" class="px-3 py-1 rounded-full text-slate-400 hover:text-slate-200 transition">Marathi</button>
+          <button onclick="changeSpeechLang('hinglish')" id="pill-lang-hinglish" class="px-3 py-1 rounded-full bg-purple-600 text-white shadow-sm transition">Hinglish</button>
+        </div>
+
+        <!-- Start Fresh / Wipe -->
+        <button onclick="clearAllData()" title="Wipe all demo/mock data and start with an empty clean workspace" class="p-2 rounded-xl g-subtle border hover:opacity-80 transition cursor-pointer text-slate-400 hover:text-rose-400">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
         </button>
 
         <!-- Theme Toggle -->
-        <button id="theme-toggle-btn" onclick="toggleTheme()" class="p-2 rounded-full g-subtle border hover:opacity-80 transition cursor-pointer flex items-center justify-center">
+        <button id="theme-toggle-btn" onclick="toggleTheme()" class="p-2 rounded-xl g-subtle border hover:opacity-80 transition cursor-pointer flex items-center justify-center">
           <span id="theme-icon-container">
             <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
           </span>
         </button>
 
+        <!-- Primary Benchmark CTA Button -->
+        <button onclick="seedBenchmarks()" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold shadow-lg shadow-purple-600/30 transition cursor-pointer active:scale-95">
+          <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          <span>Run Benchmark</span>
+        </button>
+
       </div>
 
-    </div>
-  </header>
+    </header>
 
-  <!-- Google Navigation Bar (Pill Tabs) -->
-  <div class="border-b border-slate-700/40 g-subtle px-4 sm:px-8">
-    <div class="max-w-7xl mx-auto flex items-center justify-between">
-      <div class="flex space-x-2 py-2 overflow-x-auto">
-        <button onclick="switchTab('studio')" id="tab-btn-studio" class="px-4 py-2 text-xs font-bold rounded-full bg-blue-600 text-white flex items-center gap-2 shadow-sm transition">
-          <span>🎙️ Live Studio</span>
-          <span class="text-[10px] bg-white/20 text-white px-1.5 py-0.2 rounded-full font-mono">Gemini Live</span>
-        </button>
-        <button onclick="switchTab('arena')" id="tab-btn-arena" class="px-4 py-2 text-xs font-semibold rounded-full g-subtle border hover:opacity-80 flex items-center gap-2 transition">
-          <span>⚔️ Model Arena</span>
-          <span class="text-[10px] bg-purple-500/20 text-purple-400 px-1.5 py-0.2 rounded-full font-mono">Benchmark</span>
-        </button>
-        <button onclick="switchTab('leaderboard')" id="tab-btn-leaderboard" class="px-4 py-2 text-xs font-semibold rounded-full g-subtle border hover:opacity-80 flex items-center gap-2 transition">
-          <span>🏆 Leaderboard & Slices</span>
-          <span class="text-[10px] bg-amber-500/20 text-amber-400 px-1.5 py-0.2 rounded-full font-mono">P50/P95</span>
-        </button>
-        <button onclick="switchTab('suite')" id="tab-btn-suite" class="px-4 py-2 text-xs font-semibold rounded-full g-subtle border hover:opacity-80 flex items-center gap-2 transition">
-          <span>📁 Test Suite</span>
-          <span id="suite-count-chip" class="text-[10px] bg-slate-700/40 px-1.5 py-0.2 rounded-full font-mono">0</span>
-        </button>
-        <button onclick="switchTab('history')" id="tab-btn-history" class="px-4 py-2 text-xs font-semibold rounded-full g-subtle border hover:opacity-80 flex items-center gap-2 transition">
-          <span>📈 Evaluation Log</span>
-          <span id="history-count-chip" class="text-[10px] bg-slate-700/40 px-1.5 py-0.2 rounded-full font-mono">0</span>
-        </button>
-      </div>
-
-      <div class="hidden lg:flex items-center gap-3 text-xs text-slate-500 font-mono">
-        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-500"></span> Hindi</span>
-        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-red-500"></span> Marathi</span>
-        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-yellow-500"></span> Hinglish</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Main Body Content -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full">
-    
-    <!-- ========================================== -->
-    <!-- TAB 1: LIVE VOICE AI STUDIO               -->
-    <!-- ========================================== -->
-    <div id="tab-studio" class="space-y-6">
+    <!-- Main Body Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full space-y-6 flex-1">
       
-      <!-- Top Live Audio Canvas Waveform Banner (Google Gemini Live Style) -->
-      <div class="g-card border rounded-3xl p-5 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-4">
+      <!-- ======================================================== -->
+      <!-- TAB 1: LIVE VOICE AI EVALUATION STUDIO                   -->
+      <!-- ======================================================== -->
+      <div id="tab-studio" class="space-y-6">
         
-        <div class="space-y-1 z-10">
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-500 text-xs font-semibold font-mono">
-            <span>Google Web Audio API</span> • <span>Real-Time Frequency Analysis</span>
-          </div>
-          <h2 class="text-xl font-extrabold tracking-tight">Interactive Voice Waveform Spectrum</h2>
-          <p class="text-xs text-slate-500 dark:text-slate-400">Speak into your microphone or play uploaded audio to watch multi-color oscillating harmonics.</p>
-        </div>
-
-        <!-- Google 4-Color Audio Frequency Canvas -->
-        <div class="w-full md:w-96 h-16 rounded-2xl g-subtle border relative overflow-hidden flex items-center justify-center">
-          <canvas id="google-wave-canvas" width="384" height="64" class="w-full h-full"></canvas>
-          <div id="canvas-idle-label" class="absolute text-[11px] font-mono text-slate-500 pointer-events-none">Awaiting Voice Input...</div>
-        </div>
-
-      </div>
-
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
-        <!-- Left Column: Audio Studio & Voice Capture -->
-        <div class="lg:col-span-5 space-y-5">
+        <!-- Hero Banner with 3D Glowing Sine Wave Ribbon Visualizer -->
+        <div class="g-card border rounded-3xl p-6 sm:p-8 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6 bg-gradient-to-r from-[#121622] via-[#161b2c] to-[#121622]">
           
-          <div class="g-card border rounded-3xl p-5 space-y-4">
+          <div class="space-y-3 z-10 max-w-xl">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-400 text-[11px] font-bold font-mono tracking-wider uppercase">
+              Live Evaluation Studio
+            </div>
             
-            <div class="flex items-center justify-between pb-3 border-b border-slate-700/30">
-              <span class="font-extrabold text-sm">Audio Input & Dialect</span>
-              
-              <!-- Input Mode Selector -->
-              <div class="flex p-0.5 rounded-full g-subtle border text-[11px] font-semibold">
-                <button onclick="setInputMode('mic')" id="mode-mic-btn" class="px-3 py-1 rounded-full bg-blue-600 text-white transition">🎙️ Live Mic</button>
-                <button onclick="setInputMode('upload')" id="mode-upload-btn" class="px-3 py-1 rounded-full text-slate-500 hover:text-slate-300 transition">📁 Upload File</button>
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white leading-tight">
+              Evaluate voice agents for real-world India.
+            </h1>
+            
+            <p class="text-xs sm:text-sm text-slate-400 leading-relaxed">
+              Record or upload speech, transcribe, and evaluate accuracy, entity recognition and latency across Indian languages and domains.
+            </p>
+
+            <div class="flex flex-wrap items-center gap-3 pt-1 text-xs text-slate-300">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg g-subtle border">
+                <span class="w-2 h-2 rounded-full bg-blue-400"></span> Google Web Audio API
+              </span>
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg g-subtle border">
+                <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Real-Time Analysis
+              </span>
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg g-subtle border">
+                <span class="w-2 h-2 rounded-full bg-purple-400"></span> Multi-Dialect Support
+              </span>
+            </div>
+          </div>
+
+          <!-- Glowing Ambient Purple Soundwave Canvas -->
+          <div class="w-full md:w-[420px] h-32 relative rounded-2xl overflow-hidden flex items-center justify-center shrink-0">
+            <canvas id="ambient-wave-canvas" width="420" height="128" class="w-full h-full"></canvas>
+            <canvas id="google-wave-canvas" width="420" height="128" class="w-full h-full absolute inset-0 opacity-80"></canvas>
+            <div id="canvas-idle-label" class="absolute text-[11px] font-mono text-purple-300/60 pointer-events-none flex items-center gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-purple-400 animate-ping"></span>
+              Live Audio Spectrum Ready
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 2-Column Split Workspace (Left: Audio Input Studio, Right: Evaluation Cockpit) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          
+          <!-- ============================================== -->
+          <!-- LEFT CARD: Audio Input Studio                  -->
+          <!-- ============================================== -->
+          <div class="lg:col-span-5 g-card border rounded-3xl p-6 space-y-5">
+            
+            <!-- Mode Switcher (Record Live vs Upload Audio) -->
+            <div class="flex items-center justify-between pb-3 border-b border-[#1F2538]">
+              <div class="flex p-1 rounded-xl g-subtle border text-xs font-semibold">
+                <button onclick="setInputMode('mic')" id="mode-mic-btn" class="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold transition flex items-center gap-1.5 cursor-pointer">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+                  <span>Record Live</span>
+                </button>
+                <button onclick="setInputMode('upload')" id="mode-upload-btn" class="px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5 cursor-pointer">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                  <span>Upload Audio</span>
+                </button>
+              </div>
+
+              <!-- Live Mic Status Indicator -->
+              <div class="flex items-center gap-2 text-xs font-mono">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span class="text-emerald-400 font-bold">Live Mic</span>
               </div>
             </div>
 
-            <!-- 1. Live Microphone Studio -->
-            <div id="mic-studio-container" class="space-y-3">
-              <div class="p-5 rounded-2xl g-subtle border flex flex-col items-center justify-center gap-3 text-center">
+            <!-- Central Glowing Microphone HUD with Waveform Bars -->
+            <div id="mic-studio-container" class="space-y-4">
+              <div class="p-6 rounded-2xl g-subtle border flex flex-col items-center justify-center gap-4 text-center relative overflow-hidden">
                 
-                <div class="flex items-center gap-2">
-                  <div id="rec-dot" class="w-3 h-3 rounded-full bg-slate-500 transition"></div>
-                  <span id="rec-timer" class="font-mono text-sm font-bold text-slate-400">00:00</span>
+                <!-- Central HUD: Left Bars | Glowing Mic | Right Bars -->
+                <div class="flex items-center justify-center gap-4 w-full">
+                  
+                  <!-- Left Equalizer Bars -->
+                  <div class="flex items-center gap-1 h-12 w-20 justify-end">
+                    <span class="w-1 bg-purple-500/70 rounded-full hud-bar h-3 animate-pulse"></span>
+                    <span class="w-1 bg-purple-400 rounded-full hud-bar h-6 animate-pulse" style="animation-delay: 150ms"></span>
+                    <span class="w-1 bg-indigo-400 rounded-full hud-bar h-8 animate-pulse" style="animation-delay: 300ms"></span>
+                    <span class="w-1 bg-purple-500 rounded-full hud-bar h-4 animate-pulse" style="animation-delay: 75ms"></span>
+                    <span class="w-1 bg-purple-300 rounded-full hud-bar h-10 animate-pulse" style="animation-delay: 220ms"></span>
+                  </div>
+
+                  <!-- Glowing Circular Purple Mic Button -->
+                  <button id="record-btn" onclick="toggleMicrophone()" class="w-20 h-20 rounded-full bg-gradient-to-tr from-purple-700 via-indigo-600 to-purple-500 text-white flex items-center justify-center shadow-[0_0_35px_rgba(168,85,247,0.45)] hover:scale-105 active:scale-95 transition cursor-pointer relative z-10">
+                    <svg id="mic-svg" class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+                  </button>
+
+                  <!-- Right Equalizer Bars -->
+                  <div class="flex items-center gap-1 h-12 w-20 justify-start">
+                    <span class="w-1 bg-purple-300 rounded-full hud-bar h-10 animate-pulse" style="animation-delay: 120ms"></span>
+                    <span class="w-1 bg-purple-500 rounded-full hud-bar h-4 animate-pulse" style="animation-delay: 280ms"></span>
+                    <span class="w-1 bg-indigo-400 rounded-full hud-bar h-8 animate-pulse" style="animation-delay: 90ms"></span>
+                    <span class="w-1 bg-purple-400 rounded-full hud-bar h-6 animate-pulse" style="animation-delay: 200ms"></span>
+                    <span class="w-1 bg-purple-500/70 rounded-full hud-bar h-3 animate-pulse"></span>
+                  </div>
+
                 </div>
 
-                <!-- Google Assistant Styled Large Microphone Button -->
-                <button id="record-btn" onclick="toggleMicrophone()" class="w-16 h-16 rounded-full bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 hover:scale-105 active:scale-95 text-white flex items-center justify-center shadow-xl shadow-blue-500/25 transition cursor-pointer">
-                  <svg id="mic-svg" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
-                </button>
-
-                <div>
-                  <div id="mic-label" class="text-xs font-bold">Click to Record Real Voice</div>
-                  <div class="text-[11px] text-slate-500 mt-0.5">Press <kbd class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[10px]">Space</kbd> to toggle</div>
+                <!-- Timer & Status -->
+                <div class="flex flex-col items-center">
+                  <div class="flex items-center gap-2">
+                    <span id="rec-dot" class="w-2.5 h-2.5 rounded-full bg-slate-500"></span>
+                    <span id="rec-timer" class="font-mono text-base font-bold text-slate-300 tracking-wider">00:00</span>
+                  </div>
+                  <div id="mic-label" class="text-xs text-slate-400 mt-1">Click circle to record speech or press <kbd class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[10px]">Space</kbd></div>
                 </div>
 
               </div>
 
-              <!-- Voice Recording Playback Player -->
+              <!-- Audio Playback Box -->
               <div id="audio-playback-box" class="hidden space-y-1">
                 <div class="flex items-center justify-between text-[10px] font-mono font-bold text-slate-400 uppercase">
                   <span>Voice Recording Playback</span>
                   <div class="flex gap-1.5">
-                    <button onclick="setPlaybackSpeed(1)" class="px-1.5 py-0.5 rounded bg-slate-800 text-[9px]">1x</button>
-                    <button onclick="setPlaybackSpeed(1.5)" class="px-1.5 py-0.5 rounded bg-slate-800 text-[9px]">1.5x</button>
-                    <button onclick="setPlaybackSpeed(2)" class="px-1.5 py-0.5 rounded bg-slate-800 text-[9px]">2x</button>
+                    <button onclick="setPlaybackSpeed(1)" class="px-2 py-0.5 rounded bg-slate-800 text-[10px]">1x</button>
+                    <button onclick="setPlaybackSpeed(1.5)" class="px-2 py-0.5 rounded bg-slate-800 text-[10px]">1.5x</button>
+                    <button onclick="setPlaybackSpeed(2)" class="px-2 py-0.5 rounded bg-slate-800 text-[10px]">2x</button>
                   </div>
                 </div>
                 <audio id="live-audio-elem" controls class="w-full h-9 rounded-xl g-subtle"></audio>
               </div>
+
             </div>
 
-            <!-- 2. File Upload Box -->
+            <!-- Upload File Box -->
             <div id="upload-studio-container" class="hidden space-y-3">
-              <div onclick="document.getElementById('file-upload-input').click()" class="border-2 border-dashed border-slate-700 rounded-2xl p-6 text-center cursor-pointer hover:border-blue-500 transition g-subtle">
-                <svg class="w-8 h-8 text-blue-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+              <div onclick="document.getElementById('file-upload-input').click()" class="border-2 border-dashed border-[#1F2538] rounded-2xl p-6 text-center cursor-pointer hover:border-purple-500 transition g-subtle">
+                <svg class="w-8 h-8 text-purple-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
                 <div class="text-xs font-bold" id="upload-label">Click or Drag & Drop Audio File</div>
                 <div class="text-[10px] text-slate-500 mt-1 font-mono">WAV, MP3, M4A, OGG, WEBM (Up to 25MB)</div>
                 <input type="file" id="file-upload-input" accept="audio/*" class="hidden" onchange="handleAudioUpload(event)" />
               </div>
             </div>
 
-            <!-- Target Inputs & Entity Extraction -->
-            <div class="space-y-3 pt-2">
-              <div class="grid grid-cols-2 gap-3">
-                <div>
-                  <label class="block text-[11px] font-bold text-slate-400 mb-1">Language / Dialect</label>
-                  <select id="sel-lang" onchange="changeSpeechLang(this.value)" class="w-full g-input border rounded-xl px-3 py-2 text-xs focus:outline-none cursor-pointer">
-                    <option value="hi-IN">Hindi (hi-IN)</option>
-                    <option value="mr-IN">Marathi (mr-IN)</option>
-                    <option value="hinglish" selected>Hinglish (India)</option>
-                    <option value="en-IN">English (India)</option>
-                  </select>
+            <!-- Language & Domain Selectors -->
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-[11px] font-bold text-slate-400 mb-1">Language / Dialect</label>
+                <select id="sel-lang" onchange="changeSpeechLang(this.value)" class="w-full g-input border rounded-xl px-3 py-2 text-xs focus:outline-none cursor-pointer">
+                  <option value="hinglish" selected>Hinglish (India)</option>
+                  <option value="hi-IN">Hindi (hi-IN)</option>
+                  <option value="mr-IN">Marathi (mr-IN)</option>
+                  <option value="en-IN">English (India)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-slate-400 mb-1">Domain Scenario</label>
+                <select id="sel-cat" class="w-full g-input border rounded-xl px-3 py-2 text-xs focus:outline-none cursor-pointer">
+                  <option value="banking-upi">Banking & UPI Payments</option>
+                  <option value="e-commerce">E-Commerce & Orders</option>
+                  <option value="delivery">Logistics & Delivery</option>
+                  <option value="general">Customer Support</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Expected Ground Truth Textarea -->
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <label class="block text-[11px] font-bold text-slate-400">
+                  Expected Ground Truth (Reference) *
+                </label>
+                <button type="button" onclick="autoDetectEntities()" class="text-[10px] text-purple-400 hover:text-purple-300 font-bold flex items-center gap-1 cursor-pointer">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                  <span>✦ Auto-Detect Entities</span>
+                </button>
+              </div>
+              <textarea id="inp-expected" rows="2" placeholder="e.g. I want to send five hundred rupees to Rahul." class="w-full g-input border rounded-xl p-3 text-xs focus:outline-none font-devanagari">I want to send five hundred rupees to Rahul.</textarea>
+            </div>
+
+            <!-- Recognized Speech Output Textarea -->
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <label class="block text-[11px] font-bold text-slate-400">
+                  Recognized Speech Output (Hypothesis)
+                </label>
+                <span id="stt-engine-badge" class="text-[10px] text-emerald-400 font-mono font-semibold flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Live Dictation Ready
+                </span>
+              </div>
+              <textarea id="inp-predicted" rows="2" placeholder="Live transcript will stream here as you speak..." class="w-full g-input border rounded-xl p-3 text-xs focus:outline-none font-devanagari">Live transcript will stream here as you speak...</textarea>
+            </div>
+
+            <!-- Critical Business Entities Tagging Bar -->
+            <div>
+              <label class="block text-[11px] font-bold text-slate-400 mb-1">
+                Critical Business Entities (Strict Zero-Error Audit)
+              </label>
+              <div class="flex gap-2">
+                <select id="entity-type-sel" class="w-28 g-input border rounded-xl px-2.5 py-1.5 text-xs focus:outline-none cursor-pointer">
+                  <option value="person">👤 Person</option>
+                  <option value="amount">💵 Amount</option>
+                  <option value="date">📅 Date</option>
+                  <option value="location">📍 Location</option>
+                  <option value="action">⚡ Action</option>
+                </select>
+                <input type="text" id="entity-val-inp" placeholder="e.g. Rahul, 500, Rupees" class="flex-1 g-input border rounded-xl px-3 py-1.5 text-xs focus:outline-none font-devanagari" onkeydown="if(event.key==='Enter'){event.preventDefault();addTagEntity();}" />
+                <button type="button" onclick="addTagEntity()" class="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold transition cursor-pointer">+ Add</button>
+              </div>
+
+              <!-- Default Mockup Chips matching screenshot -->
+              <div id="entity-chips-container" class="flex flex-wrap gap-1.5 mt-2 min-h-[26px]">
+                <button onclick="autoDetectEntities()" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-purple-900/40 border border-purple-500/30 text-purple-300 text-[11px] font-mono font-medium hover:bg-purple-800/50 transition">
+                  <span>+ Add Entity</span>
+                </button>
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800/80 border border-slate-700 text-slate-300 text-[11px] font-mono">
+                  <span>Rahul</span>
+                  <span class="text-slate-500 hover:text-rose-400 cursor-pointer ml-1">✕</span>
+                </span>
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800/80 border border-slate-700 text-slate-300 text-[11px] font-mono">
+                  <span>500</span>
+                  <span class="text-slate-500 hover:text-rose-400 cursor-pointer ml-1">✕</span>
+                </span>
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800/80 border border-slate-700 text-slate-300 text-[11px] font-mono">
+                  <span>Rupees</span>
+                  <span class="text-slate-500 hover:text-rose-400 cursor-pointer ml-1">✕</span>
+                </span>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="pt-2 flex gap-2">
+              <button onclick="evaluateSpeech()" id="btn-eval" class="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 active:scale-98 text-white font-bold py-3 px-4 rounded-xl transition flex items-center justify-center gap-2 text-xs shadow-lg shadow-purple-600/30 cursor-pointer">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/></svg>
+                <span>Evaluate Accuracy & Entities</span>
+              </button>
+              <button onclick="saveTestCase()" title="Save as regression test case in project" class="px-3.5 py-2.5 rounded-xl g-subtle border hover:opacity-80 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+                <span>Save</span>
+              </button>
+            </div>
+
+            <!-- Secondary Sweep Actions -->
+            <div class="grid grid-cols-2 gap-2 pt-1">
+              <button type="button" onclick="runNoiseSweep()" id="btn-noise-sweep" class="bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 font-bold py-2 px-3 rounded-xl transition flex items-center justify-center gap-1.5 text-[11px] cursor-pointer">
+                <span>📉 Noise Sweep (20→0dB)</span>
+              </button>
+              <button type="button" onclick="runLlmJudgeAudit()" id="btn-llm-judge" class="bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/40 text-purple-300 font-bold py-2 px-3 rounded-xl transition flex items-center justify-center gap-1.5 text-[11px] cursor-pointer">
+                <span>⚖️ LLM Semantic Judge</span>
+              </button>
+            </div>
+
+          </div>
+
+          <!-- ============================================== -->
+          <!-- RIGHT CARD: Evaluation HUD & Verification      -->
+          <!-- ============================================== -->
+          <div class="lg:col-span-7 g-card border rounded-3xl p-6 space-y-5">
+            
+            <!-- Segmented HUD Header Tabs -->
+            <div class="flex items-center justify-between pb-3 border-b border-[#1F2538]">
+              <div class="flex p-1 rounded-xl g-subtle border text-xs font-semibold">
+                <button class="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold transition flex items-center gap-1.5">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                  <span>Evaluation</span>
+                </button>
+                <button class="px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                  <span>Alignment</span>
+                </button>
+                <button class="px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                  <span>Entities</span>
+                </button>
+              </div>
+
+              <!-- Status Banner (Hidden until run or showing real benchmark) -->
+              <div id="eval-status-banner" class="text-xs font-mono font-semibold text-emerald-400">
+                ✓ Ready to Evaluate
+              </div>
+            </div>
+
+            <!-- 4 KPI Metric Cards (WER, CER, Entity Integrity, Latency) -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              
+              <!-- WER Card -->
+              <div class="g-subtle border border-[#1F2538] p-4 rounded-2xl relative overflow-hidden">
+                <div class="flex items-center justify-between text-[11px] text-slate-400 font-bold uppercase font-mono">
+                  <span>WER ⓘ</span>
+                  <span class="text-emerald-400 font-mono text-[10px]">↓ -2.1 pp</span>
                 </div>
-                <div>
-                  <label class="block text-[11px] font-bold text-slate-400 mb-1">Domain Scenario</label>
-                  <select id="sel-cat" class="w-full g-input border rounded-xl px-3 py-2 text-xs focus:outline-none cursor-pointer">
-                    <option value="banking-upi">Banking & UPI Payments</option>
-                    <option value="e-commerce">E-Commerce & Orders</option>
-                    <option value="delivery">Logistics & Delivery</option>
-                    <option value="general">Customer Support</option>
-                  </select>
+                <div id="kpi-wer" class="text-2xl font-black font-mono mt-1.5 text-white">6.25%</div>
+                <div class="text-[10px] text-slate-500 mt-1 font-mono">Word Error Rate</div>
+              </div>
+
+              <!-- CER Card -->
+              <div class="g-subtle border border-[#1F2538] p-4 rounded-2xl relative overflow-hidden">
+                <div class="flex items-center justify-between text-[11px] text-slate-400 font-bold uppercase font-mono">
+                  <span>CER ⓘ</span>
+                  <span class="text-emerald-400 font-mono text-[10px]">↓ -1.4 pp</span>
+                </div>
+                <div id="kpi-cer" class="text-2xl font-black font-mono mt-1.5 text-white">2.89%</div>
+                <div class="text-[10px] text-slate-500 mt-1 font-mono">Character Error</div>
+              </div>
+
+              <!-- Entity Integrity Card -->
+              <div class="g-subtle border border-[#1F2538] p-4 rounded-2xl relative overflow-hidden">
+                <div class="flex items-center justify-between text-[11px] text-slate-400 font-bold uppercase font-mono">
+                  <span>Entity Integrity</span>
+                  <span class="text-emerald-400 font-bold text-xs">✓</span>
+                </div>
+                <div id="kpi-entity" class="text-2xl font-black font-mono mt-1.5 text-emerald-400">100%</div>
+                <div class="text-[10px] text-emerald-400/80 mt-1 font-mono">✓ All entities verified</div>
+              </div>
+
+              <!-- Latency Card -->
+              <div class="g-subtle border border-[#1F2538] p-4 rounded-2xl relative overflow-hidden">
+                <div class="flex items-center justify-between text-[11px] text-slate-400 font-bold uppercase font-mono">
+                  <span>Latency</span>
+                  <div class="flex items-center gap-0.5 h-3">
+                    <span class="w-0.5 h-2 bg-purple-400 rounded-full"></span>
+                    <span class="w-0.5 h-3 bg-purple-400 rounded-full"></span>
+                    <span class="w-0.5 h-1.5 bg-purple-400 rounded-full"></span>
+                  </div>
+                </div>
+                <div id="kpi-latency" class="text-2xl font-black font-mono mt-1.5 text-purple-400">312 ms</div>
+                <div id="kpi-provider" class="text-[10px] text-slate-500 mt-1 font-mono line-clamp-1">Prisma STT (Live)</div>
+              </div>
+
+            </div>
+
+            <!-- Sequential Word Alignment Diff (Levenshtein) -->
+            <div class="g-subtle border border-[#1F2538] rounded-2xl p-4 space-y-3">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                  <h3 class="font-bold text-xs text-slate-200">
+                    Sequential Word Alignment Diff <span class="font-mono text-purple-400 text-[11px]">(Levenshtein)</span>
+                  </h3>
+                </div>
+                <div class="flex items-center gap-3 text-[10px] font-mono">
+                  <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Match</span>
+                  <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-rose-500"></span> Replaced</span>
+                  <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-500"></span> Inserted</span>
+                  <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-slate-500"></span> Deleted</span>
                 </div>
               </div>
 
-              <div>
-                <div class="flex items-center justify-between mb-1">
-                  <label class="block text-[11px] font-bold text-slate-400">
-                    Expected Ground Truth (Reference) *
-                  </label>
-                  <button type="button" onclick="autoDetectEntities()" class="text-[10px] text-blue-500 hover:text-blue-400 font-bold flex items-center gap-1 cursor-pointer">
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                    <span>Auto-Detect Entities</span>
+              <!-- Diff Token Pills Container matching screenshot -->
+              <div id="diff-box" class="font-devanagari p-3 rounded-xl bg-[#090b10] border border-[#1F2538] min-h-[50px] flex flex-wrap gap-1.5 items-center">
+                <span class="px-2 py-1 rounded bg-slate-800/80 text-slate-300 text-xs font-mono">I</span>
+                <span class="px-2 py-1 rounded bg-slate-800/80 text-slate-300 text-xs font-mono">want</span>
+                <span class="px-2 py-1 rounded bg-slate-800/80 text-slate-300 text-xs font-mono">to</span>
+                <span class="px-2 py-1 rounded bg-slate-800/80 text-slate-300 text-xs font-mono">send</span>
+                <span class="px-2.5 py-1 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-mono font-bold">five</span>
+                <span class="px-2 py-1 rounded bg-slate-800/80 text-slate-300 text-xs font-mono">hundred</span>
+                <span class="px-2 py-1 rounded bg-slate-800/80 text-slate-300 text-xs font-mono">rupees</span>
+                <span class="px-2 py-1 rounded bg-slate-800/80 text-slate-300 text-xs font-mono">to</span>
+                <span class="px-2 py-1 rounded bg-slate-800/80 text-slate-300 text-xs font-mono">Rahul</span>
+                <span class="px-2 py-1 rounded bg-slate-800/80 text-slate-300 text-xs font-mono">.</span>
+              </div>
+            </div>
+
+            <!-- Expected Reference & Transcribed Output Side-by-Side -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div class="g-subtle border border-[#1F2538] rounded-2xl p-4 space-y-1.5">
+                <div class="flex items-center justify-between text-[11px] font-bold text-slate-400 font-mono">
+                  <span class="flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <span>Expected Reference</span>
+                  </span>
+                  <span id="ref-word-badge" class="font-mono text-purple-400 text-[10px]">9 words</span>
+                </div>
+                <p id="ref-display" class="font-devanagari text-xs text-slate-300 p-3 rounded-xl bg-[#090b10] border border-[#1F2538] min-h-[55px] font-medium leading-relaxed">
+                  I want to send five hundred rupees to Rahul.
+                </p>
+              </div>
+
+              <div class="g-subtle border border-[#1F2538] rounded-2xl p-4 space-y-1.5">
+                <div class="flex items-center justify-between text-[11px] font-bold text-slate-400 font-mono">
+                  <span class="flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+                    <span>Transcribed Output</span>
+                  </span>
+                  <span id="hyp-conf-badge" class="font-mono text-emerald-400 text-[10px] bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">Confidence: 0.97</span>
+                </div>
+                <p id="hyp-display" class="font-devanagari text-xs text-slate-300 p-3 rounded-xl bg-[#090b10] border border-[#1F2538] min-h-[55px] font-medium leading-relaxed">
+                  I want to send five hundred rupees to Rahul.
+                </p>
+              </div>
+            </div>
+
+            <!-- Critical Entities Verification Audit Table -->
+            <div class="g-subtle border border-[#1F2538] rounded-2xl p-4 space-y-3">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                  <h3 class="font-bold text-xs text-slate-200">Critical Entities Verification Audit</h3>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button onclick="exportReportJSON()" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-mono border border-slate-700 transition cursor-pointer">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    <span>Export JSON</span>
+                  </button>
+                  <button onclick="switchTab('leaderboard')" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-mono border border-slate-700 transition cursor-pointer">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                    <span>View Metrics</span>
                   </button>
                 </div>
-                <textarea id="inp-expected" rows="2" placeholder="e.g. I want to send five hundred rupees to Rahul (or मुझे 500 रुपये राहुल को भेजने हैं)" class="w-full g-input border rounded-xl p-3 text-xs focus:outline-none font-devanagari"></textarea>
               </div>
 
-              <div>
-                <div class="flex items-center justify-between mb-1">
-                  <label class="block text-[11px] font-bold text-slate-400">
-                    Recognized Speech Output (Hypothesis)
-                  </label>
-                  <span id="stt-engine-badge" class="text-[10px] text-slate-500 font-mono">Live Dictation Ready</span>
-                </div>
-                <textarea id="inp-predicted" rows="2" placeholder="Live transcript will stream here as you speak..." class="w-full g-input border rounded-xl p-3 text-xs focus:outline-none font-devanagari"></textarea>
-              </div>
-
-              <!-- Critical Entities Tagging Bar -->
-              <div>
-                <label class="block text-[11px] font-bold text-slate-400 mb-1">
-                  Critical Business Entities (Strict Zero-Error Audit)
-                </label>
-                <div class="flex gap-2">
-                  <select id="entity-type-sel" class="w-28 g-input border rounded-xl px-2.5 py-1.5 text-xs focus:outline-none cursor-pointer">
-                    <option value="person">👤 Person</option>
-                    <option value="amount">💵 Amount</option>
-                    <option value="date">📅 Date</option>
-                    <option value="location">📍 Location</option>
-                    <option value="action">⚡ Action</option>
-                  </select>
-                  <input type="text" id="entity-val-inp" placeholder="e.g. Rahul, 500, Pune" class="flex-1 g-input border rounded-xl px-3 py-1.5 text-xs focus:outline-none font-devanagari" onkeydown="if(event.key==='Enter'){event.preventDefault();addTagEntity();}" />
-                  <button type="button" onclick="addTagEntity()" class="px-3 py-1.5 rounded-xl bg-blue-600 text-white text-xs font-bold transition hover:bg-blue-500 cursor-pointer">+ Add</button>
-                </div>
-
-                <div id="entity-chips-container" class="flex flex-wrap gap-1.5 mt-2 min-h-[26px]">
-                  <span class="text-[11px] text-slate-500 italic">No critical entities specified. Use Auto-Detect or type above.</span>
-                </div>
-              </div>
-
-              <!-- Evaluation Actions -->
-              <div class="pt-2 flex gap-2">
-                <button onclick="evaluateSpeech()" id="btn-eval" class="flex-1 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-xl transition flex items-center justify-center gap-2 text-xs shadow-lg shadow-blue-500/25 cursor-pointer">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/></svg>
-                  <span>Evaluate Accuracy & Entities</span>
-                </button>
-                <button onclick="saveTestCase()" title="Save as regression test case in project" class="px-3.5 py-2.5 rounded-xl g-subtle border hover:opacity-80 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
-                  <span>Save Test</span>
-                </button>
-              </div>
-
-              <!-- High-Stakes Evaluation Actions -->
-              <div class="grid grid-cols-2 gap-2 pt-1">
-                <button type="button" onclick="runNoiseSweep()" id="btn-noise-sweep" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-3 rounded-xl transition flex items-center justify-center gap-1.5 text-[11px] shadow-sm cursor-pointer">
-                  <span>📉 Noise Sweep (Clean→0dB)</span>
-                </button>
-                <button type="button" onclick="runLlmJudgeAudit()" id="btn-llm-judge" class="bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 px-3 rounded-xl transition flex items-center justify-center gap-1.5 text-[11px] shadow-sm cursor-pointer">
-                  <span>⚖️ LLM Semantic Judge</span>
-                </button>
-              </div>
-
-            </div>
-
-          </div>
-
-        </div>
-
-        <!-- Right Column: Evaluation Cockpit & Diff Traceback -->
-        <div class="lg:col-span-7 space-y-5">
-          
-          <!-- Status Banner -->
-          <div id="eval-status-banner" class="hidden rounded-3xl border-2 p-5 transition-all duration-300 shadow-xl"></div>
-
-          <!-- KPI Metric Cards Grid -->
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-            <div class="g-card border p-4 rounded-2xl">
-              <div class="text-[11px] text-slate-400 font-bold uppercase tracking-wider font-mono">Word Error (WER)</div>
-              <div id="kpi-wer" class="text-2xl font-black font-mono mt-1">--</div>
-              <div class="text-[10px] text-slate-500 mt-0.5 font-mono">Levenshtein (S+D+I)/N</div>
-            </div>
-
-            <div class="g-card border p-4 rounded-2xl">
-              <div class="text-[11px] text-slate-400 font-bold uppercase tracking-wider font-mono">Char Error (CER)</div>
-              <div id="kpi-cer" class="text-2xl font-black font-mono mt-1">--</div>
-              <div class="text-[10px] text-slate-500 mt-0.5 font-mono">Devanagari Graphemes</div>
-            </div>
-
-            <div class="g-card border p-4 rounded-2xl">
-              <div class="text-[11px] text-slate-400 font-bold uppercase tracking-wider font-mono">Entity Integrity</div>
-              <div id="kpi-entity" class="text-2xl font-black font-mono mt-1">--</div>
-              <div class="text-[10px] text-slate-500 mt-0.5 font-mono">Critical values verified</div>
-            </div>
-
-            <div class="g-card border p-4 rounded-2xl">
-              <div class="text-[11px] text-slate-400 font-bold uppercase tracking-wider font-mono">Latency</div>
-              <div id="kpi-latency" class="text-2xl font-black font-mono mt-1 text-blue-500">--</div>
-              <div id="kpi-provider" class="text-[10px] text-slate-500 mt-0.5 font-mono line-clamp-1">Prisma STT</div>
-            </div>
-          </div>
-
-          <!-- Side-by-Side Reference vs Recognized Transcripts -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="g-card border rounded-2xl p-4 space-y-2">
-              <div class="flex items-center justify-between text-[11px] font-bold text-slate-400 uppercase tracking-wider font-mono">
-                <span>Expected Reference</span>
-                <span id="ref-word-badge" class="font-mono text-blue-500">-- words</span>
-              </div>
-              <p id="ref-display" class="font-devanagari text-sm g-subtle p-3.5 rounded-xl border min-h-[75px] font-medium leading-relaxed">
-                Enter expected text and record speech to evaluate.
-              </p>
-            </div>
-
-            <div class="g-card border rounded-2xl p-4 space-y-2">
-              <div class="flex items-center justify-between text-[11px] font-bold text-slate-400 uppercase tracking-wider font-mono">
-                <span>Transcribed Output</span>
-                <span id="hyp-conf-badge" class="font-mono text-emerald-500">Confidence: --</span>
-              </div>
-              <p id="hyp-display" class="font-devanagari text-sm g-subtle p-3.5 rounded-xl border min-h-[75px] font-medium leading-relaxed">
-                Awaiting voice speech input...
-              </p>
-            </div>
-          </div>
-
-          <!-- Colorblind-Safe Sequential Word Diff Traceback -->
-          <div class="g-card border rounded-2xl p-5 space-y-3">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <div>
-                <h3 class="font-bold text-sm">
-                  Sequential Word Alignment Diff (<span class="font-mono text-blue-500 text-xs font-semibold">Levenshtein Traceback</span>)
-                </h3>
-                <p class="text-[11px] text-slate-500">Identifies exact phonetic misrecognitions, dropouts, and swapped entities.</p>
-              </div>
-              <div class="flex items-center gap-3 text-xs font-medium">
-                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 bg-slate-400 dark:bg-slate-700 rounded"></span> Match</span>
-                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 bg-rose-500 rounded"></span> Replaced (&lt;del&gt;)</span>
-                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 bg-amber-500 rounded"></span> Inserted (&lt;ins&gt;)</span>
+              <div class="overflow-x-auto border border-[#1F2538] rounded-xl bg-[#090b10]">
+                <table class="w-full text-left text-xs">
+                  <thead class="bg-[#121622] border-b border-[#1F2538] text-[10px] uppercase tracking-wider font-mono font-bold text-slate-400">
+                    <tr>
+                      <th class="py-2 px-3">#</th>
+                      <th class="py-2 px-3">Entity</th>
+                      <th class="py-2 px-3">Expected</th>
+                      <th class="py-2 px-3">Recognized</th>
+                      <th class="py-2 px-3">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="entity-table-body" class="divide-y divide-[#1F2538] font-mono text-[11px]">
+                    <tr>
+                      <td class="py-2.5 px-3 text-slate-500">1</td>
+                      <td class="py-2.5 px-3 font-semibold text-slate-200">Person</td>
+                      <td class="py-2.5 px-3 text-purple-300">Rahul</td>
+                      <td class="py-2.5 px-3 text-purple-300">Rahul</td>
+                      <td class="py-2.5 px-3 text-emerald-400 font-bold">✓ Match</td>
+                    </tr>
+                    <tr>
+                      <td class="py-2.5 px-3 text-slate-500">2</td>
+                      <td class="py-2.5 px-3 font-semibold text-slate-200">Amount</td>
+                      <td class="py-2.5 px-3 text-purple-300">500</td>
+                      <td class="py-2.5 px-3 text-purple-300">500</td>
+                      <td class="py-2.5 px-3 text-emerald-400 font-bold">✓ Match</td>
+                    </tr>
+                    <tr>
+                      <td class="py-2.5 px-3 text-slate-500">3</td>
+                      <td class="py-2.5 px-3 font-semibold text-slate-200">Currency</td>
+                      <td class="py-2.5 px-3 text-purple-300">Rupees</td>
+                      <td class="py-2.5 px-3 text-purple-300">Rupees</td>
+                      <td class="py-2.5 px-3 text-emerald-400 font-bold">✓ Match</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
 
-            <div id="diff-box" class="font-devanagari g-subtle p-4 rounded-xl border min-h-[85px] leading-loose text-sm flex flex-wrap gap-2 items-center">
-              <span class="text-slate-500 text-xs italic font-sans">Awaiting evaluation run...</span>
-            </div>
-          </div>
-
-          <!-- Critical Entity Audit Table -->
-          <div class="g-card border rounded-2xl p-5 space-y-3">
-            <div class="flex items-center justify-between">
-              <div>
-                <h3 class="font-bold text-sm">Critical Entities Verification Audit</h3>
-                <p class="text-[11px] text-slate-500">Determines whether high-stakes business parameters were preserved.</p>
-              </div>
-              <div class="flex items-center gap-2">
-                <button onclick="exportReportJSON()" class="px-2.5 py-1 rounded-lg g-subtle hover:opacity-80 text-[11px] font-bold border transition cursor-pointer">
-                  Export JSON
-                </button>
-                <button onclick="exportReportMarkdown()" class="px-2.5 py-1 rounded-lg g-subtle hover:opacity-80 text-[11px] font-bold border transition cursor-pointer">
-                  Copy Markdown
-                </button>
-              </div>
-            </div>
-
-            <div class="overflow-x-auto border rounded-xl g-card">
-              <table class="w-full text-left text-xs">
-                <thead class="g-subtle border-b uppercase text-[10px] tracking-wider font-mono font-bold">
-                  <tr>
-                    <th class="py-2.5 px-4">Entity Type</th>
-                    <th class="py-2.5 px-4">Expected Value</th>
-                    <th class="py-2.5 px-4">Audit Status</th>
-                    <th class="py-2.5 px-4">Matched Context</th>
-                  </tr>
-                </thead>
-                <tbody id="entity-table-body" class="divide-y font-mono">
-                  <tr>
-                    <td colspan="4" class="py-4 text-center text-slate-500 font-sans">No evaluation executed yet. Record or upload audio to inspect.</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
           </div>
 
         </div>
 
       </div>
 
-    </div>
-
-    <!-- ========================================== -->
-    <!-- TAB 2: MODEL COMPARISON ARENA              -->
-    <!-- ========================================== -->
-    <div id="tab-arena" class="hidden space-y-6">
+      <!-- ======================================================== -->
+      <!-- SECONDARY TABS: ARENA, LEADERBOARD, SUITE, HISTORY       -->
+      <!-- ======================================================== -->
+<div id="tab-arena" class="hidden space-y-6">
       
       <div class="g-card border rounded-3xl p-6 space-y-2">
         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs font-semibold font-mono">
@@ -857,7 +1082,9 @@
 
   </main>
 
-  <!-- Create Project Modal -->
+  </div>
+
+<!-- Create Project Modal -->
   <div id="create-project-modal" class="fixed inset-0 z-50 hidden bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="g-card border rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl">
       <div class="flex items-center justify-between pb-3 border-b border-slate-700/60">
@@ -1018,24 +1245,67 @@
       if (lastEvaluatedReport) renderReport(lastEvaluatedReport);
     }
 
-    // Tabs Manager
+        // Tabs Manager
     function switchTab(t) {
       ['studio', 'arena', 'leaderboard', 'suite', 'history'].forEach(tab => {
         const el = document.getElementById(`tab-${tab}`);
         if (el) el.classList.add('hidden');
-        const b = document.getElementById(`tab-btn-${tab}`);
-        if (b) b.className = 'px-4 py-2 text-xs font-semibold rounded-full g-subtle border hover:opacity-80 flex items-center gap-2 transition';
+        const sideBtn = document.getElementById(`side-btn-${tab}`);
+        if (sideBtn) {
+          sideBtn.className = 'w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800/40 border border-transparent transition cursor-pointer';
+        }
       });
       const targetEl = document.getElementById(`tab-${t}`);
       if (targetEl) targetEl.classList.remove('hidden');
-      const activeBtn = document.getElementById(`tab-btn-${t}`);
-      if (activeBtn) activeBtn.className = 'px-4 py-2 text-xs font-bold rounded-full bg-blue-600 text-white flex items-center gap-2 shadow-sm transition';
+      const activeSide = document.getElementById(`side-btn-${t}`);
+      if (activeSide) {
+        activeSide.className = 'w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-bold bg-purple-900/40 text-purple-200 border border-purple-500/40 shadow-[0_0_15px_rgba(168,85,247,0.15)] transition cursor-pointer';
+      }
 
       if (t === 'arena') runArenaBenchmark();
       if (t === 'leaderboard') loadLeaderboardAndSlices();
       if (t === 'suite') renderSuite();
       if (t === 'history') loadHistory();
     }
+
+    // Ambient Purple Soundwave Ribbon Canvas Animation
+    function initAmbientWaveCanvas() {
+      const canvas = document.getElementById('ambient-wave-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      let step = 0;
+
+      function renderAmbient() {
+        requestAnimationFrame(renderAmbient);
+        step += 0.02;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Multi-layered sine ribbons
+        const curves = [
+          { color: 'rgba(168, 85, 247, 0.4)', freq: 0.015, speed: 1.0, amp: 28, offset: 64 },
+          { color: 'rgba(99, 102, 241, 0.35)', freq: 0.02, speed: 1.4, amp: 20, offset: 64 },
+          { color: 'rgba(216, 180, 254, 0.25)', freq: 0.01, speed: 0.7, amp: 35, offset: 64 }
+        ];
+
+        curves.forEach(c => {
+          ctx.beginPath();
+          ctx.strokeStyle = c.color;
+          ctx.lineWidth = 2.5;
+          ctx.shadowBlur = 12;
+          ctx.shadowColor = 'rgba(168, 85, 247, 0.6)';
+
+          for (let x = 0; x < canvas.width; x++) {
+            const y = c.offset + Math.sin(x * c.freq + step * c.speed) * c.amp;
+            if (x === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.stroke();
+        });
+      }
+      renderAmbient();
+    }
+    window.addEventListener('DOMContentLoaded', initAmbientWaveCanvas);
 
     function setInputMode(m) {
       if (m === 'mic') {
