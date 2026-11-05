@@ -14,8 +14,12 @@ const cors = require('cors');
 const axios = require('axios');
 const path = require('path');
 const fs = require('fs');
-require('dotenv').config({ path: path.join(__dirname, 'server/.env') });
-require('dotenv').config();
+try {
+  require('dotenv').config({ path: path.join(__dirname, 'server/.env') });
+  require('dotenv').config();
+} catch (e) {
+  // Gracefully fallback to container environment variables in production
+}
 
 const { transcribeAudio } = require('./server/src/services/prismaService');
 const { evaluateCriticalEntities, verifyEntity } = require('./server/src/services/entityEngine');
