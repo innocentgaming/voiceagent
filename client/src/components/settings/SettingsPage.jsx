@@ -143,10 +143,10 @@ export default function SettingsPage({
           <div className="space-y-3 text-xs">
             <div className="p-3 rounded-[9px] bg-[#f8f9fc] dark:bg-[#0d121c] border border-[#e6e9ef] dark:border-[#1e2638] flex items-center justify-between">
               <div>
-                <div className="font-bold text-[#151923] dark:text-[#f1f5f9]">{user?.name || 'Aditya Yadav'}</div>
-                <div className="text-[11px] text-[#697386] dark:text-[#94a3b8] font-mono">{user?.email || 'aadiyadav1706@gmail.com'}</div>
+                <div className="font-bold text-[#151923] dark:text-[#f1f5f9]">{user?.name || 'Guest User'}</div>
+                <div className="text-[11px] text-[#697386] dark:text-[#94a3b8] font-mono">{user?.email || 'guest@indicvoicelab.ai'}</div>
                 <div className="mt-1">
-                  <Badge variant="primary" size="sm">{user?.role || 'Lead Voice AI Researcher'}</Badge>
+                  <Badge variant={user ? 'primary' : 'neutral'} size="sm">{user?.role || 'Guest Session'}</Badge>
                 </div>
               </div>
               <Button onClick={() => onOpenAuthModal && onOpenAuthModal('login')} variant="outline" size="sm">

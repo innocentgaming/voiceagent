@@ -41,7 +41,7 @@ export default function Header({
 
   const initials = user?.name
     ? user.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
-    : 'AY';
+    : '👤';
 
   const tabTitles = {
     dashboard: 'Overview',
@@ -55,7 +55,7 @@ export default function Header({
   };
 
   return (
-    <header className="sticky top-0 z-30 h-16 border-b border-[#e6e9ef] dark:border-[#1e2638] bg-white/80 dark:bg-[#111622]/80 backdrop-blur-md px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4 transition-colors">
+    <header className="sticky top-0 z-30 h-16 border-b border-[#e6e9ef] dark:border-[#161e2e] bg-white/80 dark:bg-[#070a12]/90 backdrop-blur-md px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4 transition-colors">
       {/* Left: Mobile Toggle & Breadcrumbs */}
       <div className="flex items-center gap-3 min-w-0">
         {/* Mobile Hamburger */}
@@ -259,11 +259,11 @@ export default function Header({
                   {user.name}
                 </div>
                 <div className="text-[11px] text-[#697386] dark:text-[#94a3b8] truncate font-mono">
-                  {user.email || 'aadiyadav1706@gmail.com'}
+                  {user.email || 'user@indicvoicelab.ai'}
                 </div>
                 <div className="mt-1">
                   <Badge variant="primary" size="sm">
-                    {user.role || 'Lead Voice AI Researcher'}
+                    {user.role || 'Voice AI Researcher'}
                   </Badge>
                 </div>
               </div>

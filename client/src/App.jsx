@@ -62,25 +62,13 @@ export default function App() {
     }
   }, [activeTab, activeProject, projects, activeProjectId]);
 
-  // User Profile & Authentication State
+  // User Profile & Authentication State (Defaults to unauthenticated guest)
   const [user, setUser] = useState(() => {
     try {
       const saved = localStorage.getItem('indic_user');
-      return saved ? JSON.parse(saved) : {
-        id: 'usr_aditya',
-        name: 'Aditya Yadav',
-        email: 'aadiyadav1706@gmail.com',
-        role: 'Lead Voice AI Researcher',
-        organization: 'Gnani.ai Benchmark Lab'
-      };
+      return saved ? JSON.parse(saved) : null;
     } catch (e) {
-      return {
-        id: 'usr_aditya',
-        name: 'Aditya Yadav',
-        email: 'aadiyadav1706@gmail.com',
-        role: 'Lead Voice AI Researcher',
-        organization: 'Gnani.ai Benchmark Lab'
-      };
+      return null;
     }
   });
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -159,7 +147,7 @@ export default function App() {
   const handleAuthSuccess = (authenticatedUser) => {
     setUser(authenticatedUser);
     setIsAuthModalOpen(false);
-    showToast(`Welcome back, ${authenticatedUser.name || 'Aditya'}!`, 'success');
+    showToast(`Welcome back, ${authenticatedUser.name || 'User'}!`, 'success');
   };
 
   // Initial load

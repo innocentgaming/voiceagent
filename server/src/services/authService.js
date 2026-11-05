@@ -27,8 +27,8 @@ class AuthService {
   constructor() {
     this.currentUser = {
       id: 'usr-1',
-      name: 'Aditya (Lead AI Engineer)',
-      email: 'aditya@indicvoice.lab',
+      name: 'Lead Voice AI Researcher',
+      email: 'researcher@indicvoicelab.ai',
       role: ROLES.ADMIN,
       authMethod: 'OAuth2 / Enterprise SSO'
     };

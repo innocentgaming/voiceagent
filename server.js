@@ -385,11 +385,12 @@ app.post('/api/auth/login', (req, res) => {
   db.users = db.users || [];
   let user = db.users.find(u => u.email.toLowerCase() === email.toLowerCase());
   if (!user) {
+    const defaultName = email.includes('@') ? email.split('@')[0].replace(/[._-]/g, ' ') : 'Voice AI Engineer';
     user = {
       id: `usr_${Date.now()}`,
-      name: email.includes('@') ? email.split('@')[0].replace(/[._-]/g, ' ') : 'Aditya Yadav',
+      name: defaultName.charAt(0).toUpperCase() + defaultName.slice(1),
       email: email.trim().toLowerCase(),
-      role: 'Lead Voice AI Researcher',
+      role: 'Voice AI Researcher',
       createdAt: new Date().toISOString()
     };
     db.users.push(user);
@@ -400,22 +401,31 @@ app.post('/api/auth/login', (req, res) => {
 });
 
 app.get('/api/auth/me', (req, res) => {
+  const authHeader = req.headers.authorization;
   const db = loadDb();
-  const user = db.currentUser || {
-    id: 'usr_aditya',
-    name: 'Aditya Yadav',
-    email: 'aadiyadav1706@gmail.com',
-    role: 'Lead Voice AI Researcher',
-    createdAt: new Date().toISOString()
-  };
-  res.json({ success: true, user });
+
+  // If a valid Bearer token is provided or db.currentUser exists
+  if (authHeader && authHeader.startsWith('Bearer token_')) {
+    const userId = authHeader.replace('Bearer token_', '');
+    const found = (db.users || []).find(u => u.id === userId);
+    if (found) {
+      return res.json({ success: true, user: found, isAuthenticated: true });
+    }
+  }
+
+  if (db.currentUser) {
+    return res.json({ success: true, user: db.currentUser, isAuthenticated: true });
+  }
+
+  // Guest / Unauthenticated session
+  res.json({ success: true, user: null, isAuthenticated: false });
 });
 
 app.post('/api/auth/logout', (req, res) => {
   const db = loadDb();
   db.currentUser = null;
   saveDb(db);
-  res.json({ success: true, message: 'Logged out successfully' });
+  res.json({ success: true, user: null, isAuthenticated: false, message: 'Logged out successfully' });
 });
 
 // --- Real Dashboard Telemetry ---

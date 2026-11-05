@@ -43,7 +43,7 @@ export default function AppLayout({
   ];
 
   return (
-    <div className="min-h-screen flex bg-[#f7f8fa] dark:bg-[#0b0e14] text-[#151923] dark:text-[#f1f5f9] transition-colors duration-200">
+    <div className="min-h-screen flex bg-[#f7f8fa] dark:bg-[#05070c] text-[#151923] dark:text-[#f1f5f9] transition-colors duration-200">
       {/* Persistent Left Sidebar */}
       <Sidebar
         activeTab={activeTab}

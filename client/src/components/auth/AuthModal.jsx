@@ -121,7 +121,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, initialMode 
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Aditya Yadav"
+                  placeholder="e.g. Rahul Sharma"
                   className="w-full pl-9 pr-3 py-2 saas-control text-xs"
                 />
               </div>
@@ -139,7 +139,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, initialMode 
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="e.g. aadiyadav1706@gmail.com"
+                placeholder="e.g. researcher@company.ai"
                 className="w-full pl-9 pr-3 py-2 saas-control text-xs"
               />
             </div>
@@ -189,12 +189,12 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, initialMode 
               <button
                 type="button"
                 onClick={() => {
-                  setEmail('aadiyadav1706@gmail.com');
+                  setEmail('researcher@indicvoice.ai');
                   setPassword('indicvoice2026');
                 }}
                 className="text-[11px] font-semibold text-[#3457d5] dark:text-[#6a87f5] hover:underline cursor-pointer"
               >
-                Pre-fill default login: Aditya Yadav (Lead AI Researcher)
+                Pre-fill demo credentials: researcher@indicvoice.ai
               </button>
             </div>
           )}

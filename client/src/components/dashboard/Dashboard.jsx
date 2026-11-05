@@ -41,7 +41,7 @@ export default function Dashboard({
   // Determine greeting based on current local hour
   const currentHour = new Date().getHours();
   const greeting = currentHour < 12 ? 'Good morning' : currentHour < 18 ? 'Good afternoon' : 'Good evening';
-  const firstName = user?.name ? user.name.split(' ')[0] : 'Aditya';
+  const firstName = user?.name ? user.name.split(' ')[0] : 'Researcher';
 
   return (
     <div className="space-y-8 animate-fade-in">

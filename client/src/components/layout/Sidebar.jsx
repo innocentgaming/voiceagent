@@ -33,7 +33,7 @@ export default function Sidebar({
 }) {
   const userInitials = user?.name
     ? user.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
-    : 'AY';
+    : '👤';
   const navSections = [
     {
       title: 'WORKSPACE',
@@ -77,7 +77,7 @@ export default function Sidebar({
 
       {/* Sidebar Container */}
       <aside
-        className={`fixed md:sticky top-0 left-0 z-50 h-screen transition-all duration-300 ease-in-out border-r border-[#e6e9ef] dark:border-[#1e2638] bg-white dark:bg-[#111622] flex flex-col justify-between select-none
+        className={`fixed md:sticky top-0 left-0 z-50 h-screen transition-all duration-300 ease-in-out border-r border-[#e6e9ef] dark:border-[#161e2e] bg-white dark:bg-[#080c14] flex flex-col justify-between select-none
           ${isCollapsed ? 'w-[72px]' : 'w-[260px]'}
           ${mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         `}
@@ -235,7 +235,7 @@ export default function Sidebar({
             )}
           </button>
 
-          {/* User Profile Pill (Dynamic Aditya Yadav / Authenticated User) */}
+          {/* User Profile Pill (Dynamic Authenticated User / Guest Session) */}
           <div
             onClick={() => onOpenAuthModal && onOpenAuthModal('login')}
             className={`flex items-center gap-2.5 p-2 rounded-[9px] bg-[#f8f9fc] dark:bg-[#0d121c] border border-[#e6e9ef] dark:border-[#1e2638] hover:border-[#3457d5]/40 transition cursor-pointer
@@ -249,10 +249,10 @@ export default function Sidebar({
             {!isCollapsed && (
               <div className="flex flex-col truncate leading-tight">
                 <span className="text-xs font-bold text-[#151923] dark:text-[#f1f5f9] truncate">
-                  {user?.name || 'Aditya Yadav'}
+                  {user ? user.name : 'Sign In / Register'}
                 </span>
-                <span className="text-[10px] text-[#697386] dark:text-[#94a3b8] font-mono truncate">
-                  {user?.role || 'Lead Voice AI Researcher'}
+                <span className="text-[10px] text-[#3457d5] dark:text-[#6a87f5] font-mono truncate">
+                  {user ? (user.role || 'Voice AI Researcher') : 'Guest Session • Click to login'}
                 </span>
               </div>
             )}
