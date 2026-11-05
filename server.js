@@ -337,13 +337,123 @@ const prismaService = new PrismaService();
 // 4. REST API ROUTES
 // ==========================================
 
+// --- Authentication & User Identity ---
+app.post('/api/auth/signup', (req, res) => {
+  const { name, email, password, role = 'Lead Voice AI Researcher' } = req.body;
+  if (!email || !name) {
+    return res.status(400).json({ success: false, error: 'Name and email are required' });
+  }
+  const db = loadDb();
+  db.users = db.users || [];
+  const existing = db.users.find(u => u.email.toLowerCase() === email.toLowerCase());
+  if (existing) {
+    db.currentUser = existing;
+    saveDb(db);
+    return res.json({ success: true, user: existing, token: `token_${existing.id}` });
+  }
+  const newUser = {
+    id: `usr_${Date.now()}`,
+    name: name.trim(),
+    email: email.trim().toLowerCase(),
+    role: role || 'Lead Voice AI Researcher',
+    createdAt: new Date().toISOString()
+  };
+  db.users.push(newUser);
+  db.currentUser = newUser;
+  saveDb(db);
+  res.status(201).json({ success: true, user: newUser, token: `token_${newUser.id}` });
+});
+
+app.post('/api/auth/login', (req, res) => {
+  const { email, password } = req.body;
+  if (!email) return res.status(400).json({ success: false, error: 'Email required' });
+  const db = loadDb();
+  db.users = db.users || [];
+  let user = db.users.find(u => u.email.toLowerCase() === email.toLowerCase());
+  if (!user) {
+    user = {
+      id: `usr_${Date.now()}`,
+      name: email.includes('@') ? email.split('@')[0].replace(/[._-]/g, ' ') : 'Aditya Yadav',
+      email: email.trim().toLowerCase(),
+      role: 'Lead Voice AI Researcher',
+      createdAt: new Date().toISOString()
+    };
+    db.users.push(user);
+  }
+  db.currentUser = user;
+  saveDb(db);
+  res.json({ success: true, user, token: `token_${user.id}` });
+});
+
+app.get('/api/auth/me', (req, res) => {
+  const db = loadDb();
+  const user = db.currentUser || {
+    id: 'usr_aditya',
+    name: 'Aditya Yadav',
+    email: 'aadiyadav1706@gmail.com',
+    role: 'Lead Voice AI Researcher',
+    createdAt: new Date().toISOString()
+  };
+  res.json({ success: true, user });
+});
+
+app.post('/api/auth/logout', (req, res) => {
+  const db = loadDb();
+  db.currentUser = null;
+  saveDb(db);
+  res.json({ success: true, message: 'Logged out successfully' });
+});
+
+// --- Real Dashboard Telemetry ---
+app.get('/api/dashboard', (req, res) => {
+  const db = loadDb();
+  const totalProjects = db.projects.length;
+  const totalTestCases = db.testCases.length;
+  const totalRuns = db.testRuns.length;
+
+  let avgWER = 0;
+  let avgCER = 0;
+  let criticalErrors = 0;
+
+  if (totalRuns > 0) {
+    const sumWER = db.testRuns.reduce((acc, r) => acc + (typeof r.wer === 'number' ? r.wer * 100 : 0), 0);
+    const sumCER = db.testRuns.reduce((acc, r) => acc + (typeof r.cer === 'number' ? r.cer * 100 : 0), 0);
+    avgWER = parseFloat((sumWER / totalRuns).toFixed(1));
+    avgCER = parseFloat((sumCER / totalRuns).toFixed(1));
+    criticalErrors = db.testRuns.filter(r => r.criticalPassed === false || r.hasCriticalMismatch === true).length;
+  }
+
+  const recentRuns = [...db.testRuns]
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, 10);
+
+  const data = {
+    totalProjects,
+    totalTestCases,
+    totalRuns,
+    avgWER,
+    avgCER,
+    criticalErrors,
+    recentRuns
+  };
+
+  res.json({ success: true, data });
+});
+
 // Projects
 app.get('/api/projects', (req, res) => {
   const db = loadDb();
-  res.json(db.projects.map(p => ({
-    ...p,
-    testCasesCount: db.testCases.filter(tc => tc.projectId === p.id).length
-  })));
+  const mapped = db.projects.map(p => ({
+    _id: p.id || p._id,
+    id: p.id || p._id,
+    name: p.name,
+    description: p.description,
+    category: p.category,
+    createdAt: p.createdAt,
+    testCasesCount: db.testCases.filter(tc => tc.projectId === (p.id || p._id)).length,
+    testCaseCount: db.testCases.filter(tc => tc.projectId === (p.id || p._id)).length
+  }));
+  res.json({ success: true, data: mapped });
 });
 
 app.post('/api/projects', (req, res) => {
@@ -351,6 +461,7 @@ app.post('/api/projects', (req, res) => {
   if (!name || !name.trim()) return res.status(400).json({ error: 'Project name is required' });
   const db = loadDb();
   const newProj = {
+    _id: `proj_${Date.now()}`,
     id: `proj_${Date.now()}`,
     name: name.trim(),
     description: description || '',
@@ -359,12 +470,19 @@ app.post('/api/projects', (req, res) => {
   };
   db.projects.push(newProj);
   saveDb(db);
-  res.status(201).json(newProj);
+  res.status(201).json({ success: true, data: newProj });
+});
+
+app.get('/api/projects/:id', (req, res) => {
+  const db = loadDb();
+  const proj = db.projects.find(p => (p.id || p._id) === req.params.id);
+  if (!proj) return res.status(404).json({ success: false, error: 'Project not found' });
+  res.json({ success: true, data: { ...proj, _id: proj.id || proj._id } });
 });
 
 app.delete('/api/projects/:id', (req, res) => {
   const db = loadDb();
-  db.projects = db.projects.filter(p => p.id !== req.params.id);
+  db.projects = db.projects.filter(p => (p.id || p._id) !== req.params.id);
   db.testCases = db.testCases.filter(tc => tc.projectId !== req.params.id);
   db.testRuns = db.testRuns.filter(tr => tr.projectId !== req.params.id);
   saveDb(db);
@@ -374,8 +492,10 @@ app.delete('/api/projects/:id', (req, res) => {
 // Test Cases
 app.get('/api/projects/:id/tests', (req, res) => {
   const db = loadDb();
-  const tests = db.testCases.filter(tc => tc.projectId === req.params.id);
-  res.json(tests);
+  const tests = db.testCases
+    .filter(tc => tc.projectId === req.params.id)
+    .map(tc => ({ ...tc, _id: tc.id || tc._id }));
+  res.json({ success: true, data: tests });
 });
 
 app.post('/api/projects/:id/tests', upload.single('audio'), (req, res) => {
@@ -973,7 +1093,10 @@ app.post('/api/seed', (req, res) => {
 // History & Results
 app.get('/api/projects/:id/history', (req, res) => {
   const db = loadDb();
-  res.json(db.testRuns.filter(tr => tr.projectId === req.params.id));
+  const runs = db.testRuns
+    .filter(tr => tr.projectId === req.params.id)
+    .map(tr => ({ ...tr, _id: tr.id || tr._id }));
+  res.json({ success: true, data: runs });
 });
 
 // ==========================================

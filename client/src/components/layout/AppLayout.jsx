@@ -13,7 +13,10 @@ export default function AppLayout({
   onSeedDemoData,
   isSeeding,
   theme,
-  onToggleTheme
+  onToggleTheme,
+  user,
+  onOpenAuthModal,
+  onLogout
 }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -32,6 +35,8 @@ export default function AppLayout({
         onToggleTheme={onToggleTheme}
         onSeedDemoData={onSeedDemoData}
         isSeeding={isSeeding}
+        user={user}
+        onOpenAuthModal={onOpenAuthModal}
       />
 
       {/* Main App Content Viewport */}
@@ -46,6 +51,9 @@ export default function AppLayout({
           theme={theme}
           onToggleTheme={onToggleTheme}
           onOpenMobileSidebar={() => setMobileOpen(true)}
+          user={user}
+          onOpenAuthModal={onOpenAuthModal}
+          onLogout={onLogout}
         />
 
         {/* Scrollable Workspace Container */}
@@ -56,3 +64,4 @@ export default function AppLayout({
     </div>
   );
 }
+

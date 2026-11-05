@@ -10,7 +10,11 @@ import {
   ChevronRight,
   ShieldAlert,
   CheckCircle2,
-  ExternalLink
+  ExternalLink,
+  User,
+  LogOut,
+  UserCheck,
+  ChevronDown
 } from 'lucide-react';
 import Button from '../common/Button';
 import Badge from '../common/Badge';
@@ -23,12 +27,20 @@ export default function Header({
   onOpenCreateProject,
   theme,
   onToggleTheme,
-  onOpenMobileSidebar
+  onOpenMobileSidebar,
+  user,
+  onOpenAuthModal,
+  onLogout
 }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
   const activeProject = projects.find((p) => p._id === activeProjectId);
+
+  const initials = user?.name
+    ? user.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
+    : 'AY';
 
   const tabTitles = {
     dashboard: 'Overview',
@@ -179,7 +191,96 @@ export default function Header({
             <Moon className="w-4 h-4 text-[#3457d5]" />
           )}
         </button>
+
+        {/* User Account / Profile Area */}
+        <div className="relative">
+          {user ? (
+            <button
+              onClick={() => setShowUserMenu(!showUserMenu)}
+              className="flex items-center gap-2 pl-1.5 pr-2 py-1 rounded-[9px] hover:bg-[#f2f4f8] dark:hover:bg-[#171d2b] border border-transparent hover:border-[#e6e9ef] dark:hover:border-[#1e2638] transition cursor-pointer text-left"
+              title={`Signed in as ${user.name}`}
+            >
+              <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-[#3457d5] to-[#7c3aed] text-white font-bold text-xs flex items-center justify-center font-mono shadow-xs">
+                {initials}
+              </div>
+              <div className="hidden lg:flex flex-col truncate leading-tight">
+                <span className="text-xs font-bold text-[#151923] dark:text-[#f1f5f9] truncate max-w-[110px]">
+                  {user.name}
+                </span>
+                <span className="text-[10px] text-[#697386] dark:text-[#94a3b8] truncate max-w-[110px]">
+                  {user.role ? user.role.split(' ')[0] : 'Lead'} AI
+                </span>
+              </div>
+              <ChevronDown className="w-3.5 h-3.5 text-[#8c97a8] hidden sm:block" />
+            </button>
+          ) : (
+            <button
+              onClick={() => onOpenAuthModal && onOpenAuthModal('login')}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-[9px] bg-[#3457d5] hover:bg-[#2845b5] text-white font-semibold text-xs transition cursor-pointer shadow-xs"
+            >
+              <User className="w-3.5 h-3.5" />
+              <span>Sign In</span>
+            </button>
+          )}
+
+          {/* User Profile Dropdown Menu */}
+          {showUserMenu && user && (
+            <div className="absolute right-0 mt-2 w-64 saas-card p-3 shadow-xl z-50 text-xs space-y-2">
+              <div className="pb-2 border-b border-[#e6e9ef] dark:border-[#1e2638]">
+                <div className="font-bold text-sm text-[#151923] dark:text-[#f1f5f9] truncate">
+                  {user.name}
+                </div>
+                <div className="text-[11px] text-[#697386] dark:text-[#94a3b8] truncate font-mono">
+                  {user.email || 'aadiyadav1706@gmail.com'}
+                </div>
+                <div className="mt-1">
+                  <Badge variant="primary" size="sm">
+                    {user.role || 'Lead Voice AI Researcher'}
+                  </Badge>
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <button
+                  onClick={() => {
+                    setShowUserMenu(false);
+                    onOpenAuthModal && onOpenAuthModal('login');
+                  }}
+                  className="w-full text-left px-2.5 py-1.5 rounded-[7px] hover:bg-[#f2f4f8] dark:hover:bg-[#171d2b] text-[#151923] dark:text-[#f1f5f9] flex items-center gap-2 transition cursor-pointer"
+                >
+                  <UserCheck className="w-3.5 h-3.5 text-[#3457d5]" />
+                  <span>Switch Account / Sign In</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setShowUserMenu(false);
+                    onOpenAuthModal && onOpenAuthModal('signup');
+                  }}
+                  className="w-full text-left px-2.5 py-1.5 rounded-[7px] hover:bg-[#f2f4f8] dark:hover:bg-[#171d2b] text-[#151923] dark:text-[#f1f5f9] flex items-center gap-2 transition cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5 text-[#16865b]" />
+                  <span>Create New Account</span>
+                </button>
+              </div>
+
+              <div className="pt-2 border-t border-[#e6e9ef] dark:border-[#1e2638]">
+                <button
+                  onClick={() => {
+                    setShowUserMenu(false);
+                    onLogout && onLogout();
+                  }}
+                  className="w-full text-left px-2.5 py-1.5 rounded-[7px] hover:bg-[#fdeeee] dark:hover:bg-[#341111] text-[#d64545] flex items-center gap-2 font-semibold transition cursor-pointer"
+                >
+                  <LogOut className="w-3.5 h-3.5 text-[#d64545]" />
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );
 }
+

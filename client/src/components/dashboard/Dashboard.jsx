@@ -23,22 +23,25 @@ export default function Dashboard({
   onSelectProject,
   onOpenCreateProject,
   onViewRunDetails,
-  loading = false
+  loading = false,
+  user
 }) {
   if (loading && !stats) {
     return <LoadingState message="Loading Indian Voice AI Analytics..." />;
   }
 
-  const avgWER = typeof stats?.avgWER === 'number' ? stats.avgWER.toFixed(1) : '6.2';
-  const avgCER = typeof stats?.avgCER === 'number' ? stats.avgCER.toFixed(1) : '2.9';
-  const criticalErrors = stats?.criticalErrors || 0;
   const totalRuns = stats?.totalRuns || 0;
+  const hasRuns = totalRuns > 0;
+  const avgWER = hasRuns && typeof stats?.avgWER === 'number' ? `${stats.avgWER.toFixed(1)}%` : '—';
+  const avgCER = hasRuns && typeof stats?.avgCER === 'number' ? `${stats.avgCER.toFixed(1)}%` : '—';
+  const criticalErrors = stats?.criticalErrors || 0;
   const totalProjects = stats?.totalProjects || projects.length || 0;
   const totalTestCases = stats?.totalTestCases || 0;
 
   // Determine greeting based on current local hour
   const currentHour = new Date().getHours();
   const greeting = currentHour < 12 ? 'Good morning' : currentHour < 18 ? 'Good afternoon' : 'Good evening';
+  const firstName = user?.name ? user.name.split(' ')[0] : 'Aditya';
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -47,7 +50,7 @@ export default function Dashboard({
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-xl sm:text-2xl font-extrabold text-[#151923] dark:text-[#f1f5f9] tracking-tight">
-              {greeting}, Researcher
+              {greeting}, {firstName}
             </h1>
             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold font-mono bg-[#ebf0ff] dark:bg-[#1a233b] text-[#3457d5] dark:text-[#6a87f5] border border-[#3457d5]/20">
               Vachana AI v3 Live
@@ -104,22 +107,22 @@ export default function Dashboard({
         {/* Metric 3: Average WER */}
         <MetricCard
           title="Average WER"
-          value={`${avgWER}%`}
-          subtitle="Word error rate"
+          value={avgWER}
+          subtitle={hasRuns ? "Word error rate" : "No evaluations yet"}
           icon={TrendingDown}
-          trend="-2.1 pp"
-          trendType="good"
+          trend={hasRuns ? "-2.1 pp" : null}
+          trendType={hasRuns ? "good" : undefined}
           variant="default"
         />
 
         {/* Metric 4: Average CER */}
         <MetricCard
           title="Average CER"
-          value={`${avgCER}%`}
-          subtitle="Devanagari graphemes"
+          value={avgCER}
+          subtitle={hasRuns ? "Devanagari graphemes" : "No evaluations yet"}
           icon={TrendingUp}
-          trend="-1.4 pp"
-          trendType="good"
+          trend={hasRuns ? "-1.4 pp" : null}
+          trendType={hasRuns ? "good" : undefined}
           variant="default"
         />
 
@@ -127,9 +130,9 @@ export default function Dashboard({
         <MetricCard
           title="Entity Alerts"
           value={criticalErrors}
-          subtitle="Zero-error mismatches"
+          subtitle={hasRuns ? "Zero-error mismatches" : "Awaiting first test"}
           icon={ShieldAlert}
-          trend={criticalErrors > 0 ? 'High Stakes' : 'All Passed'}
+          trend={hasRuns ? (criticalErrors > 0 ? 'High Stakes' : 'All Passed') : null}
           trendType={criticalErrors > 0 ? 'bad' : 'good'}
           variant={criticalErrors > 0 ? 'danger' : 'success'}
         />
@@ -158,3 +161,4 @@ export default function Dashboard({
     </div>
   );
 }
+

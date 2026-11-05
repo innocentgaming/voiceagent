@@ -27,8 +27,13 @@ export default function Sidebar({
   theme,
   onToggleTheme,
   onSeedDemoData,
-  isSeeding
+  isSeeding,
+  user,
+  onOpenAuthModal
 }) {
+  const userInitials = user?.name
+    ? user.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
+    : 'AY';
   const navSections = [
     {
       title: 'WORKSPACE',
@@ -216,22 +221,24 @@ export default function Sidebar({
             )}
           </button>
 
-          {/* User Profile Pill */}
+          {/* User Profile Pill (Dynamic Aditya Yadav / Authenticated User) */}
           <div
-            className={`flex items-center gap-2.5 p-2 rounded-[9px] bg-[#f8f9fc] dark:bg-[#0d121c] border border-[#e6e9ef] dark:border-[#1e2638]
+            onClick={() => onOpenAuthModal && onOpenAuthModal('login')}
+            className={`flex items-center gap-2.5 p-2 rounded-[9px] bg-[#f8f9fc] dark:bg-[#0d121c] border border-[#e6e9ef] dark:border-[#1e2638] hover:border-[#3457d5]/40 transition cursor-pointer
               ${isCollapsed ? 'justify-center p-1.5' : ''}
             `}
+            title="Account & Authentication (Click to manage / switch account)"
           >
-            <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-[#3457d5] to-[#7c3aed] text-white font-bold text-[11px] flex items-center justify-center font-mono shrink-0">
-              NK
+            <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-[#3457d5] to-[#7c3aed] text-white font-bold text-[11px] flex items-center justify-center font-mono shrink-0 shadow-xs">
+              {userInitials}
             </div>
             {!isCollapsed && (
               <div className="flex flex-col truncate leading-tight">
                 <span className="text-xs font-bold text-[#151923] dark:text-[#f1f5f9] truncate">
-                  Nayan Khandelwal
+                  {user?.name || 'Aditya Yadav'}
                 </span>
-                <span className="text-[10px] text-[#697386] dark:text-[#94a3b8] font-mono">
-                  Enterprise Researcher
+                <span className="text-[10px] text-[#697386] dark:text-[#94a3b8] font-mono truncate">
+                  {user?.role || 'Lead Voice AI Researcher'}
                 </span>
               </div>
             )}
@@ -241,3 +248,4 @@ export default function Sidebar({
     </>
   );
 }
+

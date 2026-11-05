@@ -8,6 +8,7 @@ import EnterpriseStudio from './components/governance/EnterpriseStudio';
 import EvaluationModal from './components/evaluation/EvaluationModal';
 import CreateProjectModal from './components/CreateProjectModal';
 import CreateTestCaseModal from './components/CreateTestCaseModal';
+import AuthModal from './components/auth/AuthModal';
 import AnalyticsCharts from './components/dashboard/AnalyticsCharts';
 import Card from './components/common/Card';
 import Badge from './components/common/Badge';
@@ -23,6 +24,30 @@ export default function App() {
   const [testCases, setTestCases] = useState([]);
   const [stats, setStats] = useState(null);
   const [historyRuns, setHistoryRuns] = useState([]);
+
+  // User Profile & Authentication State
+  const [user, setUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('indic_user');
+      return saved ? JSON.parse(saved) : {
+        id: 'usr_aditya',
+        name: 'Aditya Yadav',
+        email: 'aadiyadav1706@gmail.com',
+        role: 'Lead Voice AI Researcher',
+        organization: 'Gnani.ai Benchmark Lab'
+      };
+    } catch (e) {
+      return {
+        id: 'usr_aditya',
+        name: 'Aditya Yadav',
+        email: 'aadiyadav1706@gmail.com',
+        role: 'Lead Voice AI Researcher',
+        organization: 'Gnani.ai Benchmark Lab'
+      };
+    }
+  });
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState('login');
 
   // Modals & Inspection
   const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
@@ -45,6 +70,45 @@ export default function App() {
 
   const toggleTheme = () => {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  };
+
+  // Check auth session on startup
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const token = localStorage.getItem('indic_token');
+        const res = await fetch('/api/auth/me', {
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
+        });
+        const data = await res.json();
+        if (data.success && data.user) {
+          setUser(data.user);
+          localStorage.setItem('indic_user', JSON.stringify(data.user));
+        }
+      } catch (e) {
+        // Fallback to local user
+      }
+    };
+    checkAuth();
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch (e) {}
+    localStorage.removeItem('indic_token');
+    localStorage.removeItem('indic_user');
+    setUser(null);
+  };
+
+  const handleOpenAuth = (mode = 'login') => {
+    setAuthModalMode(mode);
+    setIsAuthModalOpen(true);
+  };
+
+  const handleAuthSuccess = (authenticatedUser) => {
+    setUser(authenticatedUser);
+    setIsAuthModalOpen(false);
   };
 
   // Initial load
@@ -263,6 +327,9 @@ export default function App() {
       isSeeding={isSeeding}
       theme={theme}
       onToggleTheme={toggleTheme}
+      user={user}
+      onOpenAuthModal={handleOpenAuth}
+      onLogout={handleLogout}
     >
       {/* View 1: Overview Dashboard */}
       {activeTab === 'dashboard' && (
@@ -273,6 +340,7 @@ export default function App() {
           onOpenCreateProject={() => setIsCreateProjectOpen(true)}
           onViewRunDetails={handleViewRunDetails}
           loading={isLoading}
+          user={user}
         />
       )}
 
@@ -422,6 +490,14 @@ export default function App() {
           onClose={() => setInspectedRun(null)}
         />
       )}
+
+      {/* Live Enterprise Authentication Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onAuthSuccess={handleAuthSuccess}
+        initialMode={authModalMode}
+      />
     </AppLayout>
   );
 }

@@ -20,7 +20,7 @@ import { Activity, BarChart3, TrendingUp, Volume2, ShieldCheck } from 'lucide-re
 export default function AnalyticsCharts({ stats }) {
   const [activeChartTab, setActiveChartTab] = useState('robustness');
 
-  // Prepare WER & CER Trends from actual recent runs
+  // Prepare WER & CER Trends strictly from actual recorded runs in the database
   const runs = stats?.recentRuns || [];
   const werCerData = runs.slice(0, 8).map((r, i) => ({
     name: `Run #${i + 1}`,
@@ -28,16 +28,6 @@ export default function AnalyticsCharts({ stats }) {
     CER: parseFloat((r.cer || 0).toFixed(1)),
     EntityAccuracy: r.criticalPassed ? 100 : 0
   })).reverse();
-
-  // Baseline data if runs are empty
-  const displayWerCerData = werCerData.length > 0 ? werCerData : [
-    { name: 'Run #1', WER: 11.1, CER: 8.5, EntityAccuracy: 0 },
-    { name: 'Run #2', WER: 9.4, CER: 6.2, EntityAccuracy: 100 },
-    { name: 'Run #3', WER: 14.2, CER: 9.1, EntityAccuracy: 100 },
-    { name: 'Run #4', WER: 6.8, CER: 3.5, EntityAccuracy: 100 },
-    { name: 'Run #5', WER: 12.0, CER: 7.4, EntityAccuracy: 0 },
-    { name: 'Run #6', WER: 6.25, CER: 2.89, EntityAccuracy: 100 }
-  ];
 
   // Language-wise evaluation performance (Hindi, Marathi, Hinglish, English)
   const languageData = [
@@ -215,56 +205,72 @@ export default function AnalyticsCharts({ stats }) {
                       Evaluation Run History (WER / CER Trend)
                     </span>
                   </div>
-                  <Badge variant="success" size="sm">Historical Runs</Badge>
+                  <Badge variant="success" size="sm">
+                    {werCerData.length > 0 ? `${werCerData.length} Runs Logged` : 'No Runs Yet'}
+                  </Badge>
                 </div>
 
-                <div className="h-72 w-full pt-2">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={displayWerCerData} margin={{ top: 10, right: 20, left: -15, bottom: 0 }}>
-                      <defs>
-                        <linearGradient id="colorWER" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#3457d5" stopOpacity={0.3} />
-                          <stop offset="95%" stopColor="#3457d5" stopOpacity={0} />
-                        </linearGradient>
-                        <linearGradient id="colorCER" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#7c3aed" stopOpacity={0.3} />
-                          <stop offset="95%" stopColor="#7c3aed" stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e6e9ef" className="dark:opacity-20" />
-                      <XAxis dataKey="name" stroke="#697386" fontSize={11} />
-                      <YAxis stroke="#697386" fontSize={11} unit="%" />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: '#111622',
-                          borderColor: '#1e2638',
-                          borderRadius: '8px',
-                          color: '#f1f5f9',
-                          fontSize: '11px'
-                        }}
-                      />
-                      <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
-                      <Area
-                        type="monotone"
-                        dataKey="WER"
-                        name="WER (%)"
-                        stroke="#3457d5"
-                        fillOpacity={1}
-                        fill="url(#colorWER)"
-                        strokeWidth={2}
-                      />
-                      <Area
-                        type="monotone"
-                        dataKey="CER"
-                        name="CER (%)"
-                        stroke="#7c3aed"
-                        fillOpacity={1}
-                        fill="url(#colorCER)"
-                        strokeWidth={2}
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
+                {werCerData.length === 0 ? (
+                  <div className="h-72 w-full flex flex-col items-center justify-center text-center p-6 bg-[#f8f9fc] dark:bg-[#0d121c] rounded-[9px] border border-dashed border-[#e6e9ef] dark:border-[#1e2638] space-y-3">
+                    <TrendingUp className="w-8 h-8 text-[#8c97a8]" />
+                    <div>
+                      <div className="font-bold text-sm text-[#151923] dark:text-[#f1f5f9]">
+                        No Historical Evaluation Runs Recorded
+                      </div>
+                      <p className="text-xs text-[#697386] dark:text-[#94a3b8] max-w-sm mt-1">
+                        Run a speech test in Test Studio or evaluate test cases in the Projects Workspace to generate real-time WER/CER curves.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="h-72 w-full pt-2">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={werCerData} margin={{ top: 10, right: 20, left: -15, bottom: 0 }}>
+                        <defs>
+                          <linearGradient id="colorWER" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#3457d5" stopOpacity={0.3} />
+                            <stop offset="95%" stopColor="#3457d5" stopOpacity={0} />
+                          </linearGradient>
+                          <linearGradient id="colorCER" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#7c3aed" stopOpacity={0.3} />
+                            <stop offset="95%" stopColor="#7c3aed" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e6e9ef" className="dark:opacity-20" />
+                        <XAxis dataKey="name" stroke="#697386" fontSize={11} />
+                        <YAxis stroke="#697386" fontSize={11} unit="%" />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: '#111622',
+                            borderColor: '#1e2638',
+                            borderRadius: '8px',
+                            color: '#f1f5f9',
+                            fontSize: '11px'
+                          }}
+                        />
+                        <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
+                        <Area
+                          type="monotone"
+                          dataKey="WER"
+                          name="WER (%)"
+                          stroke="#3457d5"
+                          fillOpacity={1}
+                          fill="url(#colorWER)"
+                          strokeWidth={2}
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="CER"
+                          name="CER (%)"
+                          stroke="#7c3aed"
+                          fillOpacity={1}
+                          fill="url(#colorCER)"
+                          strokeWidth={2}
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
 
                 <div className="pt-3 border-t border-[#e6e9ef] dark:border-[#1e2638] flex flex-wrap items-center justify-between gap-2 text-xs text-[#697386] dark:text-[#94a3b8]">
                   <span>Levenshtein alignment traceback ensures reproducible phonetic verification.</span>
@@ -383,3 +389,4 @@ export default function AnalyticsCharts({ stats }) {
     </div>
   );
 }
+
