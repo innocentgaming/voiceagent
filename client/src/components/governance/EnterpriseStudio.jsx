@@ -23,8 +23,14 @@ import {
   Check
 } from 'lucide-react';
 
-export default function EnterpriseStudio() {
-  const [activeSubTab, setActiveSubTab] = useState('personas');
+export default function EnterpriseStudio({ initialSubTab = 'personas' }) {
+  const [activeSubTab, setActiveSubTab] = useState(initialSubTab);
+
+  useEffect(() => {
+    if (initialSubTab) {
+      setActiveSubTab(initialSubTab);
+    }
+  }, [initialSubTab]);
 
   // Data states
   const [personas, setPersonas] = useState([]);

@@ -16,14 +16,49 @@ import Button from './components/common/Button';
 import { Settings, ShieldCheck, CheckCircle2, Cpu, Key, Database, RefreshCw } from 'lucide-react';
 
 export default function App() {
+  const validTabs = ['dashboard', 'workspace', 'studio', 'history', 'analytics', 'enterprise', 'observability', 'settings'];
+
   const [theme, setTheme] = useState(() => localStorage.getItem('indic_theme') || 'dark');
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState(() => {
+    const hash = window.location.hash.replace('#', '');
+    if (validTabs.includes(hash)) return hash;
+    const saved = localStorage.getItem('indic_active_tab');
+    if (saved && validTabs.includes(saved)) return saved;
+    return 'dashboard';
+  });
+
   const [projects, setProjects] = useState([]);
   const [activeProjectId, setActiveProjectId] = useState(null);
   const [activeProject, setActiveProject] = useState(null);
   const [testCases, setTestCases] = useState([]);
   const [stats, setStats] = useState(null);
   const [historyRuns, setHistoryRuns] = useState([]);
+
+  // Synchronize URL hash with activeTab for browser back/forward and deep linking
+  useEffect(() => {
+    window.location.hash = activeTab;
+    localStorage.setItem('indic_active_tab', activeTab);
+  }, [activeTab]);
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace('#', '');
+      if (validTabs.includes(hash)) {
+        setActiveTab(hash);
+      }
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
+  // When switching to workspace, ensure active project is selected and loaded
+  useEffect(() => {
+    if (activeTab === 'workspace' && !activeProject && projects.length > 0) {
+      const targetId = activeProjectId || projects[0]._id;
+      setActiveProjectId(targetId);
+      fetchProjectDetails(targetId);
+    }
+  }, [activeTab, activeProject, projects, activeProjectId]);
 
   // User Profile & Authentication State
   const [user, setUser] = useState(() => {
@@ -403,22 +438,12 @@ export default function App() {
 
       {/* View 6: AI Governance Studio */}
       {activeTab === 'enterprise' && (
-        <EnterpriseStudio />
+        <EnterpriseStudio initialSubTab="personas" />
       )}
 
       {/* View 7: Observability & FinOps */}
       {activeTab === 'observability' && (
-        <div className="space-y-6">
-          <div className="pb-4 border-b border-[#e6e9ef] dark:border-[#1e2638]">
-            <h1 className="text-xl sm:text-2xl font-extrabold text-[#151923] dark:text-[#f1f5f9] tracking-tight">
-              Real-Time Observability & Latency SLA
-            </h1>
-            <p className="mt-1 text-xs sm:text-sm text-[#697386] dark:text-[#94a3b8]">
-              P50/P95 latency percentiles, real-time factor (RTF), and FinOps caching telemetry.
-            </p>
-          </div>
-          <EnterpriseStudio />
-        </div>
+        <EnterpriseStudio initialSubTab="observability" />
       )}
 
       {/* View 8: Settings & Engine Status */}

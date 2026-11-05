@@ -21,6 +21,7 @@ import Badge from '../common/Badge';
 
 export default function Header({
   activeTab,
+  setActiveTab,
   projects = [],
   activeProjectId,
   onSelectProject,
@@ -66,17 +67,25 @@ export default function Header({
           <Menu className="w-5 h-5" />
         </button>
 
-        {/* Breadcrumb Navigation */}
+        {/* Breadcrumb Navigation (Interactive) */}
         <div className="hidden sm:flex items-center gap-1.5 text-xs text-[#697386] dark:text-[#94a3b8] font-medium truncate">
-          <span className="hover:text-[#151923] dark:hover:text-[#f1f5f9] transition">
+          <button
+            onClick={() => setActiveTab && setActiveTab('dashboard')}
+            className="hover:text-[#151923] dark:hover:text-[#f1f5f9] transition cursor-pointer font-medium"
+            title="Go to Overview Dashboard"
+          >
             IndicVoice Lab
-          </span>
+          </button>
           <ChevronRight className="w-3.5 h-3.5 text-[#8c97a8] shrink-0" />
-          <span className="font-semibold text-[#151923] dark:text-[#f1f5f9] truncate">
+          <button
+            onClick={() => setActiveTab && setActiveTab('workspace')}
+            className="font-semibold hover:text-[#3457d5] dark:hover:text-[#6a87f5] text-[#151923] dark:text-[#f1f5f9] truncate transition cursor-pointer"
+            title="Go to Projects Workspace"
+          >
             {activeProject ? activeProject.name : 'Workspace'}
-          </span>
+          </button>
           <ChevronRight className="w-3.5 h-3.5 text-[#8c97a8] shrink-0" />
-          <span className="text-[#3457d5] dark:text-[#6a87f5] font-semibold truncate">
+          <span className="text-[#3457d5] dark:text-[#6a87f5] font-bold truncate">
             {tabTitles[activeTab] || 'Platform'}
           </span>
         </div>

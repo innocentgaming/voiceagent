@@ -18,6 +18,7 @@ import {
 
 export default function LiveStudio({ onViewRunDetails }) {
   const [inputMode, setInputMode] = useState('mic');
+  const [uploadedFile, setUploadedFile] = useState(null);
   const [language, setLanguage] = useState('hinglish');
   const [category, setCategory] = useState('banking-upi');
   const [expectedText, setExpectedText] = useState('I want to send five hundred rupees to Rahul.');
@@ -29,6 +30,14 @@ export default function LiveStudio({ onViewRunDetails }) {
   ]);
   const [newEntityVal, setNewEntityVal] = useState('');
   const [newEntityType, setNewEntityType] = useState('person');
+
+  const handleAudioFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setUploadedFile(file);
+      setPredictedText(`[Audio File Loaded: ${file.name}] Ready for speech recognition.`);
+    }
+  };
 
   // Evaluation result state
   const [isEvaluating, setIsEvaluating] = useState(false);
@@ -209,34 +218,81 @@ export default function LiveStudio({ onViewRunDetails }) {
 
               <div className="flex items-center gap-1.5 text-xs font-mono text-[#16865b] font-semibold">
                 <span className="w-2 h-2 rounded-full bg-[#16865b] animate-pulse"></span>
-                <span>Live Mic Ready</span>
+                <span>{inputMode === 'mic' ? 'Live Mic Ready' : uploadedFile ? 'Audio Ready' : 'Upload File'}</span>
               </div>
             </div>
 
-            {/* Glowing Microphone HUD */}
-            <div className="p-6 rounded-[12px] bg-[#f8f9fc] dark:bg-[#0d121c] border border-[#e6e9ef] dark:border-[#1e2638] flex flex-col items-center justify-center text-center space-y-3">
-              <div className="flex items-center gap-4">
-                <button
-                  onClick={toggleRecording}
-                  className={`w-16 h-16 rounded-full flex items-center justify-center text-white transition-all duration-200 cursor-pointer shadow-lg active:scale-95 ${
-                    isRecording
-                      ? 'bg-[#d64545] shadow-[#d64545]/40 animate-pulse'
-                      : 'bg-gradient-to-tr from-[#3457d5] to-[#7c3aed] shadow-[#3457d5]/30 hover:scale-105'
-                  }`}
+            {/* Tab Panel 1: Microphone HUD */}
+            {inputMode === 'mic' ? (
+              <div className="p-6 rounded-[12px] bg-[#f8f9fc] dark:bg-[#0d121c] border border-[#e6e9ef] dark:border-[#1e2638] flex flex-col items-center justify-center text-center space-y-3">
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={toggleRecording}
+                    className={`w-16 h-16 rounded-full flex items-center justify-center text-white transition-all duration-200 cursor-pointer shadow-lg active:scale-95 ${
+                      isRecording
+                        ? 'bg-[#d64545] shadow-[#d64545]/40 animate-pulse'
+                        : 'bg-gradient-to-tr from-[#3457d5] to-[#7c3aed] shadow-[#3457d5]/30 hover:scale-105'
+                    }`}
+                  >
+                    {isRecording ? <Square className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
+                  </button>
+                </div>
+
+                <div>
+                  <div className="font-mono text-base font-extrabold text-[#151923] dark:text-[#f1f5f9]">
+                    {formatTimer(recordSeconds)}
+                  </div>
+                  <div className="text-[11px] text-[#697386] dark:text-[#94a3b8] mt-0.5">
+                    {isRecording ? 'Listening to voice stream...' : 'Click to record microphone'}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              /* Tab Panel 2: Audio File Upload Dropzone */
+              <div className="p-6 rounded-[12px] bg-[#f8f9fc] dark:bg-[#0d121c] border-2 border-dashed border-[#e6e9ef] dark:border-[#1e2638] hover:border-[#3457d5] dark:hover:border-[#6a87f5] transition flex flex-col items-center justify-center text-center space-y-3">
+                <input
+                  type="file"
+                  id="studio-audio-upload"
+                  accept="audio/*,.wav,.mp3,.ogg,.m4a"
+                  className="hidden"
+                  onChange={handleAudioFileChange}
+                />
+                <label
+                  htmlFor="studio-audio-upload"
+                  className="cursor-pointer flex flex-col items-center space-y-2"
                 >
-                  {isRecording ? <Square className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
-                </button>
+                  <div className="w-12 h-12 rounded-full bg-[#ebf0ff] dark:bg-[#1a233b] text-[#3457d5] dark:text-[#6a87f5] flex items-center justify-center">
+                    <Upload className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <span className="font-bold text-xs text-[#3457d5] dark:text-[#6a87f5] hover:underline">
+                      Click to upload audio
+                    </span>
+                    <span className="text-xs text-[#697386] dark:text-[#94a3b8]"> or drag & drop</span>
+                  </div>
+                  <p className="text-[10px] text-[#8c97a8] font-mono">
+                    WAV, MP3, OGG, or M4A (16kHz PCM recommended)
+                  </p>
+                </label>
+                {uploadedFile && (
+                  <div className="pt-1 flex items-center gap-2 text-xs font-mono text-[#16865b] font-bold">
+                    <CheckCircle2 className="w-4 h-4 shrink-0" />
+                    <span className="truncate max-w-[200px]">{uploadedFile.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setUploadedFile(null);
+                        setPredictedText('Live transcript will stream here as you speak...');
+                      }}
+                      className="text-[#8c97a8] hover:text-[#d64545] ml-1 cursor-pointer"
+                      title="Remove uploaded audio"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                )}
               </div>
-
-              <div>
-                <div className="font-mono text-base font-extrabold text-[#151923] dark:text-[#f1f5f9]">
-                  {formatTimer(recordSeconds)}
-                </div>
-                <div className="text-[11px] text-[#697386] dark:text-[#94a3b8] mt-0.5">
-                  {isRecording ? 'Listening to voice stream...' : 'Click to record microphone'}
-                </div>
-              </div>
-            </div>
+            )}
 
             {/* Language & Scenario Selectors */}
             <div className="grid grid-cols-2 gap-3 text-xs">
